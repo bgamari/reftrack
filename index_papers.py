@@ -11,7 +11,11 @@ import arxiv
 
 logging.basicConfig(level=logging.DEBUG)
 
+total = 0
+unidentified = 0
+
 def get_metadata(f):
+        global total, unidentified
         h = hashlib.md5()
         h.update(open(f).read())
         md5 = h.hexdigest()
@@ -38,8 +42,10 @@ def get_metadata(f):
                         logging.info('Failed to get arXiv metadata for %s' % f)
 
         else:
+                unidentified += 1
                 logging.info('Could not identify %s' % f)
 
+        total += 1
         return metad
 
 def merge_papers(p1, p2):
@@ -56,16 +62,17 @@ def merge_papers(p1, p2):
         return res
 
 papers = []
-for f in sys.argv[1:]:
+files = sys.argv[1:]
+for f in files:
         try:
                 papers.append(get_metadata(f))
         except Exception as e:
-                print e
+                print 'Error processing %s: ' % f, e
                 pass
+logging.info('Processed %d files, %d unidentified (identified %3.1f%%)' % (total, unidentified, 1.*(total-unidentified)/total))
 
 if os.path.isfile('papers.json'):
         old_papers = json.load(open('papers.json'))
         papers = merge_papers(old_papers, papers)
 
 json.dump(papers, open('papers.json', 'w'), indent=2)
-
