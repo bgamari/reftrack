@@ -23,17 +23,17 @@ def check_doi(f):
         else:
                 return m
 
-papers = {}
+papers = []
 for f in sys.argv[1:]:
         metad = { 'filename': f }
 
         h = hashlib.md5()
         h.update(open(f).read())
-        metad['md5'] = h.hexdigest()
+        md5 = h.hexdigest()
+        metad['md5'] = md5
 
         metad.update(check_doi(f))
-        papers[f] = metad
+        papers.append(metad)
 
-print papers
-json.dump(papers, open('papers.json', 'w'))
+json.dump(papers, open('papers.json', 'w'), indent=2)
 
