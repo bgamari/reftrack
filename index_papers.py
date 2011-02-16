@@ -4,13 +4,14 @@ import logging
 import sys
 import json
 import hashlib
-import simple_extract
+import metadata_extract
 import crossref
 
 logging.basicConfig(level=logging.DEBUG)
 
 def check_doi(f):
-        doi = simple_extract.find_doi(f)
+        metad = metadata_extract.find_metadata(f)
+        doi = metad.get('doi')
         if not doi:
                 logging.info('Failed to find DOI in %s' % f)
                 return {}
