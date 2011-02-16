@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import os
 import logging
 import sys
 import json
@@ -45,13 +46,14 @@ def merge_papers(p1, p2):
         d1 = dict([ (p['md5'], p) for p in p1 ])
         d2 = dict([ (p['md5'], p) for p in p2 ])
 
-        res = {}
+        res = []
         for k in d1.keys()+d2.keys():
-                res[k] = {}
-                res[k].update(d1.get(k, {}))
-                res[k].update(d2.get(k, {}))
+                r = {}
+                r.update(d1.get(k, {}))
+                r.update(d2.get(k, {}))
+                res.append(r)
 
-        return res.values()
+        return res
 
 papers = []
 for f in sys.argv[1:]:
@@ -61,6 +63,9 @@ for f in sys.argv[1:]:
                 print e
                 pass
 
-old_papers = json.load(open('papers.json'))
-json.dump(merge_papers(old_papers, papers), open('papers.json', 'w'), indent=2)
+if os.path.isfile('papers.json'):
+        old_papers = json.load(open('papers.json'))
+        papers = merge_papers(old_papers, papers)
+
+json.dump(papers, open('papers.json', 'w'), indent=2)
 
