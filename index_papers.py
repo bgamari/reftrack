@@ -6,35 +6,61 @@ import json
 import hashlib
 import metadata_extract
 import crossref
+import arxiv
 
 logging.basicConfig(level=logging.DEBUG)
 
-def check_doi(f):
-        metad = metadata_extract.find_metadata(f)
-        doi = metad.get('doi')
-        if not doi:
-                logging.info('Failed to find DOI in %s' % f)
-                return {}
-        logging.debug('DOI of %s is %s' % (f, doi))
-
-        m = crossref.lookup_doi(doi)
-        if not m:
-                logging.info('Failed to get crossref data for %s' % f)
-                return {}
-        else:
-                return m
-
-papers = []
-for f in sys.argv[1:]:
-        metad = { 'filename': f }
-
+def get_metadata(f):
         h = hashlib.md5()
         h.update(open(f).read())
         md5 = h.hexdigest()
-        metad['md5'] = md5
+        metad = { 'filename': f, 'md5': md5 }
 
-        metad.update(check_doi(f))
-        papers.append(metad)
+        metad.update(metadata_extract.find_metadata(f))
+        doi = metad.get('doi')
+        arxiv_id = metad.get('arxiv_id')
 
-json.dump(papers, open('papers.json', 'w'), indent=2)
+        if doi:
+                logging.debug('DOI of %s is %s' % (f, doi))
+                m = crossref.lookup_doi(doi)
+                if m:
+                        metad.update(m)
+                else:
+                        logging.info('Failed to get crossref metadata for %s' % f)
+
+        elif arxiv_id:
+                logging.debug('arXiv ID of %s is %s' % (f, arxiv_id))
+                m = arxiv.get_metadata(arxiv_id)
+                if m:
+                        metad.update(m)
+                else:
+                        logging.info('Failed to get arXiv metadata for %s' % f)
+
+        else:
+                logging.info('Could not identify %s' % f)
+
+        return metad
+
+def merge_papers(p1, p2):
+        d1 = dict([ (p['md5'], p) for p in p1 ])
+        d2 = dict([ (p['md5'], p) for p in p2 ])
+
+        res = {}
+        for k in d1.keys()+d2.keys():
+                res[k] = {}
+                res[k].update(d1.get(k, {}))
+                res[k].update(d2.get(k, {}))
+
+        return res.values()
+
+papers = []
+for f in sys.argv[1:]:
+        try:
+                papers.append(get_metadata(f))
+        except Exception as e:
+                print e
+                pass
+
+old_papers = json.load(open('papers.json'))
+json.dump(merge_papers(old_papers, papers), open('papers.json', 'w'), indent=2)
 

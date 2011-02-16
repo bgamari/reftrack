@@ -2,8 +2,10 @@
 
 import sys
 import re
+import subprocess
+
 doi_re = re.compile(r'(?:doi|DOI)?[\s\.\:]{0,3}(10\.\d{4}/[\d\w\-\.\+]+)')
-arxiv_re = re.compile(r'arXiv:(\d{4,4}\.\d{4,4})')
+arxiv_re = re.compile(r'arXiv:(\d{4,4}\.\d{4,4})(v\d+)?')
 
 def find_metadata(file):
         metadata = {}
@@ -16,7 +18,7 @@ def find_metadata(file):
 
         m = arxiv_re.search(txt)
         if m:
-                metadata['arvix_id'] = m.group(1)
+                metadata['arxiv_id'] = m.group(1)
 
         return metadata
         
