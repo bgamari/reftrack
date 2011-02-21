@@ -72,10 +72,10 @@ def process_files(files):
         logging.info('Processed %d files, %d unidentified (identified %3.1f%%)' %
                      (total, unidentified, 100.*(total-unidentified)/total))
 
-def mongo_sync(files):
+def mongo_update(refs):
         import mongoengine, schema
         mongoengine.connect('refs')
-        for p in process_files(files):
+        for p in refs:
                 d = schema.Ref.objects(md5=p['md5']).first()
                 print p
                 if p.get('type') == 'journal_article':
@@ -98,5 +98,5 @@ def json_dump(files):
 
 if __name__ == '__main__':
         #json_dump(sys.argv[1:])
-        mongo_sync(sys.argv[1:])
+        mongo_update(process_files(sys.argv[1:]))
 

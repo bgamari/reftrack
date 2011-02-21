@@ -1,0 +1,16 @@
+#!/usr/bin/python
+
+import mongoengine
+import schema
+import arxiv
+
+mongoengine.use('refs')
+
+from index_papers import mongo_update
+
+if __name__ == '__main__':
+        from datetime import date, timedelta
+        _from = date.today() - timedelta(days=1)
+        _until = date.today()
+        r = list_records(arxiv_oai_url, _set='physics', _from=_from, _until=_until)
+        mongo_update(r)
