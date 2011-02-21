@@ -61,18 +61,42 @@ def merge_papers(p1, p2):
 
         return res
 
-papers = []
-files = sys.argv[1:]
-for f in files:
-        try:
-                papers.append(get_metadata(f))
-        except Exception as e:
-                print 'Error processing %s: ' % f, e
-                pass
-logging.info('Processed %d files, %d unidentified (identified %3.1f%%)' % (total, unidentified, 1.*(total-unidentified)/total))
+def process_files(files):
+        for f in files:
+                try:
+                        p = get_metadata(f)
+                        yield p
+                except Exception as e:
+                        logging.warn('Error processing %s: %s' % (f, e))
 
-if os.path.isfile('papers.json'):
-        old_papers = json.load(open('papers.json'))
-        papers = merge_papers(old_papers, papers)
+        logging.info('Processed %d files, %d unidentified (identified %3.1f%%)' %
+                     (total, unidentified, 100.*(total-unidentified)/total))
 
-json.dump(papers, open('papers.json', 'w'), indent=2)
+def mongo_sync(files):
+        import mongoengine, schema
+        mongoengine.connect('refs')
+        for p in process_files(files):
+                d = schema.Ref.objects(md5=p['md5']).first()
+                print p
+                if p.get('type') == 'journal_article':
+                        del p['type']
+                        p['authors'] = [ '%s %s' % (given, sur) for given,sur in p['authors'] ]
+                        if not d:
+                                d = schema.JournalArticle(**p)
+                        else:
+                                for k in p:
+                                        if k not in d: d[k] = p[k]
+                        d.save()
+
+def json_dump(files):
+        papers = list(process_files(files))
+        if os.path.isfile('papers.json'):
+                old_papers = json.load(open('papers.json'))
+                papers = merge_papers(old_papers, papers)
+
+        json.dump(papers, open('papers.json', 'w'), indent=2)
+
+if __name__ == '__main__':
+        #json_dump(sys.argv[1:])
+        mongo_sync(sys.argv[1:])
+
