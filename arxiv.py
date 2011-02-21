@@ -20,9 +20,9 @@ def oai_request(url, query):
                 else:
                         raise RuntimeError('Failed urllib2 request')
 
-def unpack_metadata(et):
+def parse_arxiv_record(et):
         md = {}
-        m = et.find('oai:GetRecord/oai:record/oai:metadata/arxiv:arXiv', namespaces=prefixes)
+        m = et.find('oai:metadata/arxiv:arXiv', namespaces=prefixes)
         md['authors'] = [ (a.findtext('arxiv:forenames', namespaces=prefixes),
                            a.findtext('arxiv:keyname', namespaces=prefixes))
                          for a in m.findall('arxiv:authors/arxiv:author', namespaces=prefixes) ]
@@ -30,16 +30,46 @@ def unpack_metadata(et):
         md['abstract'] = m.findtext('arxiv:abstract', namespaces=prefixes).strip()
         return md
 
-def get_metadata(arxiv_id):
-        query = 'verb=GetRecord&identifier=oai:arXiv.org:%s&metadataPrefix=arXiv' % arxiv_id
-        d = oai_request(arxiv_oai_url, query)
+def get_record(oai_url, identifier):
+        query = 'verb=GetRecord&identifier=%s&metadataPrefix=arXiv' % identifier
+        d = oai_request(oai_url, query)
         et = ElementTree.fromstring(d)
-        md = unpack_metadata(et)
+        md = parse_archiv_record(et.find('oai:GetRecord/oai:record', namespaces=prefixes))
         md['arxiv_id'] = arxiv_id
         return md
 
+def lookup_arxiv(arxiv_id):
+        return get_record(arxiv_oai_url, 'oai:arXiv.org:%s' % arxiv_id)
+
+def list_records(oai_url, _from=None, _until=None, _set=None):
+        query = 'verb=ListRecords&metadataPrefix=arXiv'
+        if _from:
+                query += '&from=%s' % _from.isoformat()
+        if _until:
+                query += '&until=%s' % _until.isoformat()
+        if _set:
+                query += '&set=%s' % _set
+        d = oai_request(oai_url, query)
+        et = ElementTree.fromstring(d)
+        ets = et.findall('oai:ListRecords/oai:record', namespaces=prefixes)
+        records = map(parse_arxiv_record, ets)
+        return records
+        
+def resume_list_records(resumption_token):
+        query = 'verb=ListRecords&resumptionToken=%s' % resumption_token
+        d = oai_request(oai_url, query)
+        et = ElementTree.fromstring(d)
+        ets = et.findall('oai:ListRecords/oai:record', namespaces=prefixes)
+        records = map(parse_arxiv_record, ets)
+        return records
+
 if __name__ == '__main__':
         arxiv_id = '0804.2273'
-        metad = get_metadata(arxiv_id)
-        print metad
+        #metad = lookup_arxiv(arxiv_id)
+        #print metad
+        
+        from datetime import date, timedelta
+        _from = date.today() - timedelta(days=1)
+        _until = date.today()
+        list_records(arxiv_oai_url, _set='physics', _from=_from, _until=_until)
 
