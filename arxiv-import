@@ -1,16 +1,64 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 
-import mongoengine
-import schema
+import logging
+import pymongo
+from xml.etree import ElementTree
 import arxiv
-
-mongoengine.use('refs')
 
 from index_papers import mongo_update
 
+logging.basicConfig(level=logging.DEBUG)
+
+def import_days(db, args, wait=30):
+        """ Imports days of records going back in time """
+        day = int(args.start)
+        while True:
+                _until = date.today() - timedelta(days=day)
+                _from = date.today() - timedelta(days=day+args.chunksize)
+                logging.info('Starting chunk %s to %s' %
+                             (datetime.strftime(_from, '%Y-%m-%d'),
+                              datetime.strftime(_until, '%Y-%m-%d')))
+
+                refs = arxiv.list_all_records(arxiv.arxiv_oai_url, wait=wait,
+                                              _set='physics:cond-mat',
+                                              _from=_from, _until=_until)
+
+                t0 = time.time()
+                n = 0
+                for r in refs:
+                        mongo_update(db, r)
+                        n += 1
+
+                from datetime import datetime
+                dt = time.time()-t0
+                logging.info('Chunk done: %d refs added in %f seconds (%f refs per second)' %
+                             (datetime.strftime(_from, '%Y-%m-%d'),
+                              datetime.strftime(_until, '%Y-%m-%d'),
+                              n, dt, 1.*n/dt))
+                day += args.chunksize
+                
+                logging.info('Sleeping 30 seconds')
+                time.sleep(wait)
+
 if __name__ == '__main__':
+        import sys
+        import argparse
         from datetime import date, timedelta
-        _from = date.today() - timedelta(days=1)
-        _until = date.today()
-        r = list_records(arxiv_oai_url, _set='physics', _from=_from, _until=_until)
-        mongo_update(r)
+        import time
+
+        parser = argparse.ArgumentParser(description='Import refs from arxiv')
+        parser.add_argument('-C' ,'--chunksize', metavar='DAYS', type=int, help='Size of each query')
+        parser.add_argument('-s' ,'--start', metavar='DAYS', type=int, help='Number of days ago to start downloading from')
+        parser.add_argument('-l', '--parse-last', action='store_true', help='Reparse the last response')
+        args = parser.parse_args()
+
+        conn = pymongo.Connection()
+        db = conn['refs']
+
+        if args.parse_last:
+                d = open('last_response.xml', 'r')
+                et = ElementTree.fromstring(d)
+                # TODO: Implement
+        else:
+                import_days(db, args, 30)
+

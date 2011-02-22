@@ -20,7 +20,8 @@ def _parse_journal_record(journal_rec):
         set_key('year', et.findtext('journal_article/publication_date/year'))
         authors = et.findall('journal_article/contributors/person_name')
         if authors:
-                d['authors'] = [(a.findtext('given_name'), a.findtext('surname')) for a in authors]
+                d['authors'] = [ {'forenames': a.findtext('given_name'),
+                                  'surname': a.findtext('surname')} for a in authors]
 
         first = et.findtext('journal_article/pages/first_page')
         last = et.findtext('journal_article/pages/last_page')

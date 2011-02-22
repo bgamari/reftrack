@@ -5,6 +5,8 @@ import logging
 import sys
 import json
 import hashlib
+
+import pymongo
 import metadata_extract
 import crossref
 import arxiv
@@ -72,21 +74,13 @@ def process_files(files):
         logging.info('Processed %d files, %d unidentified (identified %3.1f%%)' %
                      (total, unidentified, 100.*(total-unidentified)/total))
 
-def mongo_update(refs):
-        import mongoengine, schema
-        mongoengine.connect('refs')
-        for p in refs:
-                d = schema.Ref.objects(md5=p['md5']).first()
-                print p
-                if p.get('type') == 'journal_article':
-                        del p['type']
-                        p['authors'] = [ '%s %s' % (given, sur) for given,sur in p['authors'] ]
-                        if not d:
-                                d = schema.JournalArticle(**p)
-                        else:
-                                for k in p:
-                                        if k not in d: d[k] = p[k]
-                        d.save()
+def mongo_update(db, ref):
+        d = db.refs.find_one({'authors': ref['authors'], 'title': ref['title']})
+        if not d:
+                d = ref
+        else:
+                d.update(ref)
+        db.refs.save(d)
 
 def json_dump(files):
         papers = list(process_files(files))
@@ -98,5 +92,6 @@ def json_dump(files):
 
 if __name__ == '__main__':
         #json_dump(sys.argv[1:])
-        mongo_update(process_files(sys.argv[1:]))
+        for ref in process_files(sys.argv[1:]):
+                mongo_update(ref)
 
