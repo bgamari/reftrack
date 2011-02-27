@@ -1,5 +1,7 @@
 from django.http import HttpResponse, Http404
 import pdf_render
+from StringIO import StringIO
+import gzip
 
 import pymongo
 db = pymongo.Connection().refs
@@ -26,7 +28,16 @@ def render_page(request, doc_id, page_n, format):
                 return resp
         elif format == 'svg':
                 resp = HttpResponse(mimetype='image/svg+xml')
-                pdf_render.render_svg(resp, filename, int(page_n))
+                if 'gzip' in request.META['HTTP_ACCEPT_ENCODING']:
+                        strio = StringIO()
+                        gz = gzip.GzipFile(fileobj=strio, mode='wb')
+                        pdf_render.render_svg(gz, filename, int(page_n))
+                        gz.close()
+                        resp.write(strio.getvalue())
+                        resp['Content-Encoding'] = 'gzip'
+                else:
+                        pdf_render.render_svg(resp, filename, int(page_n))
+
                 return resp
         else:
                 raise RuntimeError('Unknown format')

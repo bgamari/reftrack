@@ -3,6 +3,8 @@
 {% load format_tex %}
 {% load ref_url %}
 
+{% block page_title %}[Ref Search]{% endblock %}
+
 {% block content %}
 {% if ref|length == 0 %}
         <h1>No results found</h1>
@@ -10,8 +12,8 @@
 <ul id="results">
 {% for ref in refs %}
         <li class="ref-result">
-        <span class="title"><a href="{{ ref|ref_url }}">{{ ref.title|format_tex }}</a></span>
-        <span class="authors">{{ ref.authors|format_authors:3 }}</span>
+                <span class="title"><a href="{{ ref|ref_url }}">{{ ref.title|format_tex }}</a></span>
+                <span class="authors">{{ ref.authors|format_authors:3 }}</span>
         </li>
 {% endfor %}
 </ul>

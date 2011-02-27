@@ -61,14 +61,15 @@ def parse_arxiv_record(et):
         md['authors'] = [
                 {'forenames': a.findtext('arxiv:forenames', namespaces=prefixes),
                  'surname': a.findtext('arxiv:keyname', namespaces=prefixes)}
-                 for a in m.findall('arxiv:authors/arxiv:author', namespaces=prefixes)
+                for a in m.findall('arxiv:authors/arxiv:author', namespaces=prefixes)
         ]
         md['title'] = m.findtext('arxiv:title', namespaces=prefixes)
-        md['abstract'] = m.findtext('arxiv:abstract', namespaces=prefixes).strip()
+        md['abstract'] = m.findtext('arxiv:abstract', namespaces=prefixes).replace('\n', ' ').strip()
         md['arxiv_categories'] = m.findtext('arxiv:categories', namespaces=prefixes).split()
         md['arxiv_id'] = m.findtext('arxiv:id', namespaces=prefixes)
         md['pub_date'] = parse_date(m.findtext('arxiv:created', namespaces=prefixes))
         md['type'] = 'journal_article'
+        md['arxiv_journal_ref'] = m.findtext('arxiv:journal-ref', namespaces=prefixes)
         return md
 
 def get_record(oai_url, identifier):
@@ -128,11 +129,6 @@ def list_sets(oai_url):
 
 if __name__ == '__main__':
         arxiv_id = '0804.2273'
-        #metad = lookup_arxiv(arxiv_id)
-        #print metad
-        
-        from datetime import date, timedelta
-        _from = date.today() - timedelta(days=1)
-        _until = date.today()
-        list_records(arxiv_oai_url, _set='physics', _from=_from, _until=_until)
+        metad = lookup_arxiv(arxiv_id)
+        print metad
 

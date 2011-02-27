@@ -1,15 +1,35 @@
 {% extends "refs/base.html" %}
 {% load authorslist %}
 {% load format_tex %}
+{% load tags %}
+
+{% block page_title %}[Ref] {{ ref.title }}{% endblock %}
 
 {% block content %}
         <h1>{{ ref.title|format_tex }}</h1>
         <span id='authors'>{{ ref.authors|format_authors }}</span>
         {% if ref.abstract %}
-                <div><b>Abstract:</b>
-                <span id='abstract'>{{ ref.abstract|format_tex }}</div>
-                </div>
+        <div>
+                <b>Abstract:</b>
+                <span id='abstract'>{{ ref.abstract|format_tex }}</span>
+        </div>
         {% endif %}
+
+        {% if ref.arxiv_id %}
+        <div>
+                <b>arXiv:</b>
+                <a id='arxiv_id' href='http://www.arxiv.org/abs/{{ref.arxiv_id}}'>{{ ref.arxiv_id }}</a>
+        </div>
+        {% endif %}
+
+        {% if ref.doi %}
+        <div>
+                <b>DOI:</b>
+                <a id='doi' href='http://dx.doi.org/{{ref.doi}}'>{{ ref.doi }}</a>
+        </div>
+        {% endif %}
+
+        {{ ref.tags|format_tags }}
 
         <h2>Files</h2>
         <ul>
