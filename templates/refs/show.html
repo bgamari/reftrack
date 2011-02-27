@@ -1,0 +1,14 @@
+{% extends "refs/base.html" %}
+{% load authorslist %}
+{% load format_tex %}
+
+{% block content %}
+        <h1>{{ ref.title }}</h1>
+        <span id='authors'>{{ ref.authors|format_authors }}</span>
+        {% if ref.abstract %}
+                <div><b>Abstract: </b>
+                <span id='abstract'>{{ ref.abstract|format_tex }}</div>
+                </div>
+        {% endif %}
+{% endblock %}
+
