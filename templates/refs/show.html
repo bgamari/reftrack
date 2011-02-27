@@ -6,9 +6,16 @@
         <h1>{{ ref.title }}</h1>
         <span id='authors'>{{ ref.authors|format_authors }}</span>
         {% if ref.abstract %}
-                <div><b>Abstract: </b>
+                <div><b>Abstract:</b>
                 <span id='abstract'>{{ ref.abstract|format_tex }}</div>
                 </div>
         {% endif %}
+
+        <h2>Files</h2>
+        <ul>
+        {% for f in docs %}
+                <li><a href='/documents/{{ f.md5 }}/page/1/svg'>{{ f.filename }}</a></li>
+        {% endfor %}
+        </ul>
 {% endblock %}
 

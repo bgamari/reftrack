@@ -1,8 +1,6 @@
-import subprocess
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import Http404
 import re
 
 import pymongo
@@ -40,19 +38,8 @@ def show(request, ref_id):
         ref_id = ref_id.replace('_', '/')
         ref = db.refs.find_one({'_id': ref_id})
         if ref is None: raise Http404
-        return render_to_response('refs/show.html', {'ref': ref},
+        docs = db.documents.find({'ref': ref_id})
+        return render_to_response('refs/show.html',
+                                  {'ref': ref, 'docs': docs},
                                   context_instance=RequestContext(request))
 
-def render_page(request, ref_id, page_n, format):
-        from pdf_render import render_svg
-        file = db.files.find_one({'ref': ref_id})
-        if file is None: raise Http404
-        data = None
-        print '"%s"' % format
-        if format == 'png':
-                data = render_png(file['filename'], int(page_n))
-        elif format == 'svg':
-                data = render_svg(file['filename'], int(page_n))
-        resp = HttpResponse()
-        resp.write(data)
-        return resp

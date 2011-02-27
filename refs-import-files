@@ -19,8 +19,7 @@ unidentified = 0
 
 def scrape_pdf(fname):
         global total, unidentified
-        metad = {}
-        metad.update(metadata_extract.find_metadata(f))
+        metad = pdfscrape.find_ids(f)
         doi = metad.get('doi')
         arxiv_id = metad.get('arxiv_id')
 
@@ -35,7 +34,7 @@ def scrape_pdf(fname):
 
         elif arxiv_id:
                 logging.debug('arXiv ID of %s is %s' % (f, arxiv_id))
-                m = arxiv.get_metadata(arxiv_id)
+                m = arxiv.lookup_arxiv(arxiv_id)
                 m['_id'] = 'arxiv:%s' % arxiv_id
                 if m:
                         metad.update(m)
@@ -56,31 +55,41 @@ for f in files:
         md5 = h.hexdigest()
 
         ref = None
+        ref = scrape_pdf(f)
         try:
-                ref = scrape_file(f)
+                ref = scrape_pdf(f)
         except Exception as e:
                 logging.warn('Error processing %s: %s' % (f, e))
+                continue
+
+        if 'title' not in ref or 'authors' not in ref:
+                logging.warn('Insufficient metadata for %s' % f)
+                continue
 
         dbref = index.find_ref(db, ref)
         refid = None
         if dbref is None:
-                refid = db.refs.save(dbref)
+                refid = db.refs.save(ref)
         else:
                 refid = dbref['_id']
 
-        file = db.files.find_one({'md5': md5})
+        file = db.documents.find_one({'md5': md5})
         if file is None:
                 file = {
-                        '_id': md5
+                        '_id': md5,
                         'md5': md5,
                         'ref': refid,
                         'filename': f
                 }
-                db.files.save(file)
+                db.documents.save(file)
         elif file['ref'] != refid:
-                logging.warn('While processing %s (md5=%s): existing file %s in database already already assigned to ref %s' %
+                logging.warn('%s (md5=%s): existing file %s in database already already assigned to ref %s' %
                              (f, md5, file['filename'], ref['_id']))
+        else:
+                logging.info('%s (md5=%s): File already associated with ref %s' %
+                             (f, md5, refid))
 
-logging.info('Processed %d files, %d unidentified (identified %3.1f%%)' %
-             (total, unidentified, 100.*(total-unidentified)/total))
+if total > 0:
+        logging.info('Processed %d files, %d unidentified (identified %3.1f%%)' %
+                     (total, unidentified, 100.*(total-unidentified)/total))
 

@@ -41,7 +41,7 @@ def lookup_doi(*dois):
         d = f.read()
         et = xml.etree.ElementTree.fromstring(d)
         j = et.find('doi_record/crossref/journal')
-        if j:
+        if j is not None:
                 return _parse_journal_record(j)
         else:
                 return None

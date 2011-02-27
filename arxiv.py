@@ -76,12 +76,13 @@ def get_record(oai_url, identifier):
                  'identifier': identifier,
                  'metadataPrefix': 'arXiv'}
         et = oai_request(oai_url, **query)
-        md = parse_archiv_record(et.find('oai:GetRecord/oai:record', namespaces=prefixes))
-        md['arxiv_id'] = arxiv_id
+        md = parse_arxiv_record(et.find('oai:GetRecord/oai:record', namespaces=prefixes))
         return md
 
 def lookup_arxiv(arxiv_id):
-        return get_record(arxiv_oai_url, 'oai:arXiv.org:%s' % arxiv_id)
+        md = get_record(arxiv_oai_url, 'oai:arXiv.org:%s' % arxiv_id)
+        md['arxiv_id'] = arxiv_id
+        return md
 
 def list_records(oai_url, _from=None, _until=None, _set=None):
         query = {'verb': 'ListRecords',

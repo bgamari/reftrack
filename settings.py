@@ -76,6 +76,7 @@ TEMPLATE_DIRS = (
 
 INSTALLED_APPS = (
     'refs',
+    'documents',
     'django.contrib.contenttypes',
     'django.contrib.sites',
     'django.contrib.messages',
