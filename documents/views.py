@@ -16,7 +16,7 @@ def render_page(request, doc_id, page_n, format):
         from pdf_render import render_svg
         import os.path
         doc = db.documents.find_one({'_id': doc_id})
-        #if doc is None: raise Http404
+        if doc is None: raise Http404
         data = None
         filename = os.path.abspath(doc['filename'])
         print filename

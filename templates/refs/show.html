@@ -3,7 +3,7 @@
 {% load format_tex %}
 
 {% block content %}
-        <h1>{{ ref.title }}</h1>
+        <h1>{{ ref.title|format_tex }}</h1>
         <span id='authors'>{{ ref.authors|format_authors }}</span>
         {% if ref.abstract %}
                 <div><b>Abstract:</b>

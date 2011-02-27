@@ -25,3 +25,11 @@ def find_ref(db, ref):
 
         return None
 
+ignore_words = 'a an the is are for when to from in at of'.split()
+def generate_keywords(ref):
+        kws = set()
+        kws.update(ref['title'].split(), (a['surname'] for a in ref['authors']))
+        kws = [kw.lower() for kw in kws
+                  if len(kw) > 3 and kws not in ignore_words]
+        return kws
+

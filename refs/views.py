@@ -12,21 +12,21 @@ def index(request):
 def search(request):
         if request.method == 'POST':
                 search = {}
-                if 'author' in request.POST and len(request.POST['author']) > 0:
-                        author_re = re.compile(request.POST['author'], re.I)
-                        search['$or'] = [{'authors.surname': author_re},
-                                         {'authors.forenames': author_re}]
+                if len(request.POST.get('author', '')) > 0:
+                        for word in request.POST['author']:
+                                author_re = re.compile(word, re.I)
+                                search['$or'] = [{'authors.surname': author_re},
+                                                 {'authors.forenames': author_re}]
 
-                if 'title' in request.POST and len(request.POST['title']) > 0:
-                        search['title'] = re.compile(request.POST['title'])
+                if len(request.POST.get('title', '')) > 0:
+                        for word in request.POST['title'].split():
+                                search['title'] = re.compile(word, re.I)
 
-                if 'keywords' in request.POST and len(request.POST['keywords']) > 0:
+                if len(request.POST.get('keywords', '')) > 0:
                         for word in request.POST['keywords'].split():
-                                word_re = re.compile(word, re.I)
-                                search['$or'] = [{'authors.surname': word_re},
-                                                 {'authors.forenames': word_re},
-                                                 {'title': word_re},]
+                                search['keywords'] = re.compile(word, re.I)
 
+                print search
                 results = db.refs.find(search)
                 return render_to_response('refs/results.html', {'refs': results},
                                           context_instance=RequestContext(request))
