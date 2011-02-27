@@ -10,19 +10,15 @@
         var page_n = {{ page_n }};
         var n_pages = {{ n_pages }};
         function set_page() {
-                var img = document.getElementById('page');
-                document.getElementById('spinner-container').style.display = 'block';
-                document.getElementById('page').style.opacity = 0.2;
-                img.onload = function() {
-                        document.getElementById('page').style.opacity = 1;
-                        document.getElementById('spinner-container').style.display = 'none';
+                $('spinner-container').style.display = 'block';
+                $('page').style.opacity = 0.2;
+                $('page').onload = function() {
+                        $('page').style.opacity = 1;
+                        $('spinner-container').style.display = 'none';
                 };
-                img.src = "/documents/{{ doc.md5 }}/page/" + page_n + "?{{opts}}"
-                img.alt = "Page " + page_n;
-
-                var e = document.getElementById('page-num');
-                e.firstChild.nodeValue = 'Page ' + page_n + ' of ' + n_pages;
-
+                $('page').src = "/documents/{{ doc.md5 }}/page/" + page_n + "?{{opts}}"
+                $('page').alt = "Page " + page_n;
+                $('page-num').firstChild.nodeValue = 'Page ' + (page_n+1) + ' of ' + n_pages;
                 var stateObj = { page_n: page_n };
                 var url = "/documents/{{ doc.md5 }}/view/" + page_n + "?{{opts}}";
                 history.pushState(stateObj, 'page ' + page_n, url);
@@ -34,15 +30,15 @@
         function next_page() {
                 page_n += 1;
                 if (page_n == n_pages-1)
-                        document.getElementById('next-page').style.visibility = 'hidden';
-                document.getElementById('prev-page').style.visibility = 'visible';
+                        $('next-page').style.visibility = 'hidden';
+                $('prev-page').style.visibility = 'visible';
                 set_page(page_n);
         }
         function prev_page() {
                 page_n -= 1;
                 if (page_n == 0)
-                        document.getElementById('prev-page').style.visibility = 'hidden';
-                document.getElementById('next-page').style.visibility = 'visible';
+                        $('prev-page').style.visibility = 'hidden';
+                $('next-page').style.visibility = 'visible';
                 set_page(page_n);
         }
 </script>
@@ -53,25 +49,37 @@
                 -webkit-box-orient: horizontal;
                 background-color: #eee;
                 padding: 2em;
+                -webkit-box-pack: center;
         }
         .page-arrow {
                 display: -webkit-box;
                 -webkit-box-orient: horizontal;
-                font-size: x-large;
-                border: dotted 1px;
-                min-width: 5em;
-                max-width: 5em;
+                font-size: xx-large;
                 text-align: center;
-                min-height: 200px;
+                /*border: dotted 1px;*/
+                min-width: 5em;
                 cursor: pointer;
+                background-color: #ddd;
+                border-radius: 15px;
         }
         .page-arrow:hover {
-                background-color: #ddd;
+                background-color: #ccc;
         }
-        .spacer {
-                display: -webkit-box;
-                -webkit-box-orient: horizontal;
-                -webkit-box-flex: 2;
+        #prev-page {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+        }
+        #next-page {
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+        }
+        #spinner-container {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                display:none;
+                background-color: #fff;
+                border-radius: 15px;
         }
 </style>
 {% endblock %}
@@ -80,12 +88,12 @@
 <div>
         <h2>{{ ref.title }}</h2>
         <span class='authors'>{{ ref.authors|format_authors }}</span>
+        <div><a href="/refs/{{ ref|get_id }}">Back to Ref</a> | <a href="/documents/{{ doc.md5 }}">Download</a></div>
 </div>
-<div id='page-num' style='text-align: center;'>hellasdf</div>
+<div id='page-num' style='text-align: center;'>Hello World</div>
 <div id='doc-container'>
-        <span class='spacer'></span>
         <span id='prev-page' class='page-arrow' onclick="prev_page()">←</span>
-        <span id='spinner-container' style='position: absolute; top: 50%; left: 50%; display:none;'>
+        <span id='spinner-container'>
                 <div id='spinner' class='spinner'>
                         <div class="bar1"></div>
                         <div class="bar2"></div>
@@ -99,7 +107,6 @@
         </span>
         <img id='page' />
         <span id='next-page' class='page-arrow' onclick="next_page()">→</span>
-        <span class='spacer'></span>
 </div>
 
 <script type='text/javascript'>
