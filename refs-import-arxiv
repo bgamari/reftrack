@@ -1,11 +1,12 @@
 #!/usr/bin/python2.7
 
+from datetime import date, timedelta
+from datetime import datetime
 import logging
 import pymongo
-from xml.etree import ElementTree
-import arxiv
 
-from index_papers import mongo_update
+from index import find_ref
+import arxiv
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -14,7 +15,6 @@ def oai_import(args, wait=30):
         db = pymongo.Connection().refs
         day = args.start
         while True:
-                from datetime import datetime
                 _until = date.today() - timedelta(days=day)
                 _from = date.today() - timedelta(days=day+args.chunksize)
                 logging.info('Starting chunk %s to %s' %
@@ -53,7 +53,6 @@ def list_sets(args):
 if __name__ == '__main__':
         import sys
         import argparse
-        from datetime import date, timedelta
         import time
 
         parser = argparse.ArgumentParser(description='Import refs from arxiv')
