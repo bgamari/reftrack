@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load authorslist %}
+{% load format_tex %}
+{% load ref_url %}
+
+{% block page_title %}[Viewing Ref] {{ ref.title }}{% endblock %}
+
+{% block extra_head %}
+<script type='text/javascript'>
+        var page_n = {{ page_n }};
+        var n_pages = {{ n_pages }};
+        function set_page() {
+                var img = document.getElementById('page');
+                document.getElementById('spinner-container').style.display = 'block';
+                document.getElementById('page').style.opacity = 0.2;
+                img.onload = function() {
+                        document.getElementById('page').style.opacity = 1;
+                        document.getElementById('spinner-container').style.display = 'none';
+                };
+                img.src = "/documents/{{ doc.md5 }}/page/" + page_n + "?{{opts}}"
+                img.alt = "Page " + page_n;
+
+                var e = document.getElementById('page-num');
+                e.firstChild.nodeValue = 'Page ' + page_n + ' of ' + n_pages;
+
+                var stateObj = { page_n: page_n };
+                var url = "/documents/{{ doc.md5 }}/view/" + page_n + "?{{opts}}";
+                history.pushState(stateObj, 'page ' + page_n, url);
+        }
+        window.onpopstate = function(event) {
+                page_n = event.state['page_n'];
+                set_page();
+        };
+        function next_page() {
+                page_n += 1;
+                if (page_n == n_pages-1)
+                        document.getElementById('next-page').style.visibility = 'hidden';
+                document.getElementById('prev-page').style.visibility = 'visible';
+                set_page(page_n);
+        }
+        function prev_page() {
+                page_n -= 1;
+                if (page_n == 0)
+                        document.getElementById('prev-page').style.visibility = 'hidden';
+                document.getElementById('next-page').style.visibility = 'visible';
+                set_page(page_n);
+        }
+</script>
+
+<style type='text/css'>
+        div#doc-container {
+                display: -webkit-box;
+                -webkit-box-orient: horizontal;
+                background-color: #eee;
+                padding: 2em;
+        }
+        .page-arrow {
+                display: -webkit-box;
+                -webkit-box-orient: horizontal;
+                font-size: x-large;
+                border: dotted 1px;
+                min-width: 5em;
+                max-width: 5em;
+                text-align: center;
+                min-height: 200px;
+                cursor: pointer;
+        }
+        .page-arrow:hover {
+                background-color: #ddd;
+        }
+        .spacer {
+                display: -webkit-box;
+                -webkit-box-orient: horizontal;
+                -webkit-box-flex: 2;
+        }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+        <h2>{{ ref.title }}</h2>
+        <span class='authors'>{{ ref.authors|format_authors }}</span>
+</div>
+<div id='page-num' style='text-align: center;'>hellasdf</div>
+<div id='doc-container'>
+        <span class='spacer'></span>
+        <span id='prev-page' class='page-arrow' onclick="prev_page()">←</span>
+        <span id='spinner-container' style='position: absolute; top: 50%; left: 50%; display:none;'>
+                <div id='spinner' class='spinner'>
+                        <div class="bar1"></div>
+                        <div class="bar2"></div>
+                        <div class="bar3"></div>
+                        <div class="bar4"></div>
+                        <div class="bar5"></div>
+                        <div class="bar6"></div>
+                        <div class="bar7"></div>
+                        <div class="bar8"></div>
+                </div>
+        </span>
+        <img id='page' />
+        <span id='next-page' class='page-arrow' onclick="next_page()">→</span>
+        <span class='spacer'></span>
+</div>
+
+<script type='text/javascript'>
+        set_page();
+</script>
+{% endblock %}
+

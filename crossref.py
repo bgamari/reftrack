@@ -4,7 +4,15 @@ import urllib
 import urllib2
 import xml.etree.ElementTree
 
-doi_url = 'http://doi.crossref.org/servlet/query?usr=bgamari@physics.umass.edu&pwd=mudpie11&format=xml&id=%s'
+username = 'bgamari@physics.umass.edu'
+password = 'mudpie11'
+doi_url = 'http://doi.crossref.org/servlet/query'
+
+class CrossRefError(RuntimeError):
+        def __init__(self, text):
+                self.text = text
+        def __str__(self):
+                return self.text
 
 def _parse_journal_record(journal_rec):
         et = journal_rec
@@ -12,6 +20,7 @@ def _parse_journal_record(journal_rec):
         def set_key(key, val):
                 if val: d[key] = val
         d['type'] = 'journal_article'
+        d['doi'] = et.findtext('journal_article/doi_data/doi')
         set_key('journal', et.findtext('journal_metadata/abbrev_title'))
         set_key('full_journal', et.findtext('journal_metadata/full_title'))
         set_key('volume', et.findtext('journal_issue/journal_volume/volume'))
@@ -30,16 +39,17 @@ def _parse_journal_record(journal_rec):
         elif first:
                 d['pages'] = first
                                   
-        d['doi'] = et.findtext('journal_article/doi_data/doi')
-
         return d
 
-def lookup_doi(*dois):
-        d = map(urllib.quote, dois)
-        url = doi_url % '%0A'.join(d)
+def lookup_doi(doi):
+        url = '%s?usr=%s&pwd=%s&format=xml&id=%s' % (doi_url, username, password, urllib.quote(doi))
         f = urllib2.urlopen(url)
         d = f.read()
         et = xml.etree.ElementTree.fromstring(d)
+        err = et.findtext('doi_record/crossref/error')
+        if err is not None:
+                raise CrossRefError(err)
+
         j = et.find('doi_record/crossref/journal')
         if j is not None:
                 return _parse_journal_record(j)
@@ -51,5 +61,6 @@ if __name__ == '__main__':
         dois = sys.argv[1:]
         if len(dois) == 0:
                 dois = ['10.1577/H02-043', '10.1021/jp035514+']
-        print lookup_doi(*dois)
+        for doi in dois:
+                print lookup_doi(doi)
 

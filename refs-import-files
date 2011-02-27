@@ -10,7 +10,7 @@ import pdfscrape
 import arxiv
 import crossref
 
-db = pymongo.Connection().refs
+db = pymongo.Connection().reftrack
 
 logging.basicConfig(level=logging.DEBUG)
 

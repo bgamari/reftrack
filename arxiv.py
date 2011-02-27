@@ -20,6 +20,8 @@ class OAIError(RuntimeError):
         def __init__(self, code, text):
                 self.code = code
                 self.text = text
+        def __str__(self):
+                return self.text
 
 class RetryAfterHandler(urllib2.BaseHandler):
         def http_error_503(self, req, fp, code, msg, hdrs):

@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 def oai_import(args, wait=30):
         """ Imports records going back in time """
-        db = pymongo.Connection().refs
+        db = pymongo.Connection().reftrack
         day = args.start
         while True:
                 _until = date.today() - timedelta(days=day)

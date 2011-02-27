@@ -4,7 +4,7 @@ from django.template import RequestContext
 import re
 
 import pymongo
-db = pymongo.Connection().refs
+db = pymongo.Connection().reftrack
 
 def index(request):
         return HttpResponse('Hello world!')
@@ -13,21 +13,21 @@ def search(request):
         if request.method == 'POST':
                 search = {}
                 if len(request.POST.get('author', '')) > 0:
-                        for word in request.POST['author']:
-                                author_re = re.compile(word, re.I)
-                                search['$or'] = [{'authors.surname': author_re},
-                                                 {'authors.forenames': author_re}]
+                        res = [re.compile(word, re.I) for word in request.POST['author'].split()]
+                        search['authors.surname'] = {'$all': res}
 
                 if len(request.POST.get('title', '')) > 0:
-                        for word in request.POST['title'].split():
-                                search['title'] = re.compile(word, re.I)
+                        res = [re.compile(word, re.I) for word in request.POST['title'].split()]
+                        search['title'] = {'$all': res}
 
                 if len(request.POST.get('keywords', '')) > 0:
-                        for word in request.POST['keywords'].split():
-                                search['keywords'] = re.compile(word, re.I)
+                        res = [re.compile(word, re.I) for word in request.POST['keywords'].split()]
+                        search['keywords'] = {'$all': res}
 
                 print search
-                results = db.refs.find(search)
+                results = list(db.refs.find(search))
+                for ref in results:
+                        ref['tags'] = db.tags.find({'ref': ref['_id']})
                 return render_to_response('refs/results.html', {'refs': results},
                                           context_instance=RequestContext(request))
         else:

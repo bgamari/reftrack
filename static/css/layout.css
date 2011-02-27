@@ -1,0 +1,53 @@
+body, html {
+	background-color: #f6f6f6;
+	margin: 0;
+	padding: 0;
+}
+
+div#content {
+	background-color: #fff;
+	height: 100%;
+	margin: 0 auto;
+	padding: 0 1.2em 1.2em 1.2em;
+}
+
+h1.title {
+        font-size: x-large;
+        font-weight: bold;
+	margin: 0.3em 0;
+	padding: 0.1em 0;
+}
+
+blockquote {
+	line-height: 1.8em;
+	margin-top: 0;
+	margin-bottom: 1em;
+}
+
+ul {
+	padding-left: 1.5em;
+}
+
+ul li {
+	list-style-type: disc;
+	margin-left: 1.5em;
+	margin-top: 0.4em;
+}
+
+code {
+	background-color: #f6f6f6;
+	border: 1px solid #999;
+	border-left: none;
+	border-right: none;
+	padding-left: 2px;
+	padding-right: 2px;
+	white-space: nowrap;
+}
+
+pre code {
+	border: none;
+	padding: 0;
+	background: none;
+	white-space: pre-wrap;
+}
+
