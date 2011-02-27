@@ -30,6 +30,7 @@ def get_metadata(f):
         if doi:
                 logging.debug('DOI of %s is %s' % (f, doi))
                 m = crossref.lookup_doi(doi)
+                m['_id'] = 'doi:%s' % doi
                 if m:
                         metad.update(m)
                 else:
@@ -38,6 +39,7 @@ def get_metadata(f):
         elif arxiv_id:
                 logging.debug('arXiv ID of %s is %s' % (f, arxiv_id))
                 m = arxiv.get_metadata(arxiv_id)
+                m['_id'] = 'arxiv:%s' % arxiv_id
                 if m:
                         metad.update(m)
                 else:
@@ -74,24 +76,17 @@ def process_files(files):
         logging.info('Processed %d files, %d unidentified (identified %3.1f%%)' %
                      (total, unidentified, 100.*(total-unidentified)/total))
 
-def mongo_update(db, ref):
+def get_ref(db, ref):
+        if 'arxiv_id' in ref:
+                d = db.refs.find_one({'arxiv_id': ref['arxiv_id']})
+                if d: return d
+
         d = db.refs.find_one({'authors': ref['authors'], 'title': ref['title']})
-        if not d:
-                d = ref
-        else:
-                d.update(ref)
-        db.refs.save(d)
+        if d: return d
 
-def json_dump(files):
-        papers = list(process_files(files))
-        if os.path.isfile('papers.json'):
-                old_papers = json.load(open('papers.json'))
-                papers = merge_papers(old_papers, papers)
-
-        json.dump(papers, open('papers.json', 'w'), indent=2)
+        return None
 
 if __name__ == '__main__':
-        #json_dump(sys.argv[1:])
         for ref in process_files(sys.argv[1:]):
                 mongo_update(ref)
 

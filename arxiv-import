@@ -9,10 +9,12 @@ from index_papers import mongo_update
 
 logging.basicConfig(level=logging.DEBUG)
 
-def import_days(db, args, wait=30):
-        """ Imports days of records going back in time """
-        day = int(args.start)
+def oai_import(args, wait=30):
+        """ Imports records going back in time """
+        db = pymongo.Connection().refs
+        day = args.start
         while True:
+                from datetime import datetime
                 _until = date.today() - timedelta(days=day)
                 _from = date.today() - timedelta(days=day+args.chunksize)
                 logging.info('Starting chunk %s to %s' %
@@ -20,25 +22,33 @@ def import_days(db, args, wait=30):
                               datetime.strftime(_until, '%Y-%m-%d')))
 
                 refs = arxiv.list_all_records(arxiv.arxiv_oai_url, wait=wait,
-                                              _set='physics:cond-mat',
+                                              _set=args.set,
                                               _from=_from, _until=_until)
 
                 t0 = time.time()
                 n = 0
-                for r in refs:
-                        mongo_update(db, r)
+                new = 0
+                for ref in refs:
+                        d = find_ref(db, ref)
+                        if d is None:
+                                new += 1
+                                d = {}
+                        d.update(ref)
+                        d['_id'] = 'arxiv:%s' % d['arxiv_id']
+                        db.refs.save(d)
                         n += 1
 
-                from datetime import datetime
                 dt = time.time()-t0
-                logging.info('Chunk done: %d refs added in %f seconds (%f refs per second)' %
-                             (datetime.strftime(_from, '%Y-%m-%d'),
-                              datetime.strftime(_until, '%Y-%m-%d'),
-                              n, dt, 1.*n/dt))
+                logging.info('Chunk done: %d refs processed (%d new) in %f seconds (%f refs per second)' %
+                              (n, new, dt, 1.*n/dt))
                 day += args.chunksize
                 
                 logging.info('Sleeping 30 seconds')
                 time.sleep(wait)
+
+def list_sets(args):
+        for spec,name in arxiv.list_sets(arxiv.arxiv_oai_url):
+                print '%20s\t%s' % (spec, name)
 
 if __name__ == '__main__':
         import sys
@@ -47,18 +57,19 @@ if __name__ == '__main__':
         import time
 
         parser = argparse.ArgumentParser(description='Import refs from arxiv')
-        parser.add_argument('-C' ,'--chunksize', metavar='DAYS', type=int, help='Size of each query')
-        parser.add_argument('-s' ,'--start', metavar='DAYS', type=int, help='Number of days ago to start downloading from')
-        parser.add_argument('-l', '--parse-last', action='store_true', help='Reparse the last response')
+        sps = parser.add_subparsers(help='Sub-command help')
+        p = sps.add_parser('list-sets', help='List available sets')
+        p.set_defaults(func=list_sets)
+
+        p = sps.add_parser('import', help='Import references from OAI')
+        p.add_argument('-C' ,'--chunksize', metavar='DAYS', type=int, help='Size of each query')
+        p.add_argument('-u', '--url', default=arxiv.arxiv_oai_url, help='OAI query URL')
+        p.add_argument('-s' ,'--start', metavar='DAYS', type=int,
+                       help='Number of days ago to start downloading from')
+        p.add_argument('-S', '--set', metavar='SET', type=str,
+                       help='Set from which to import', default='physics:cond-mat')
+        p.set_defaults(func=oai_import)
+
         args = parser.parse_args()
-
-        conn = pymongo.Connection()
-        db = conn['refs']
-
-        if args.parse_last:
-                d = open('last_response.xml', 'r')
-                et = ElementTree.fromstring(d)
-                # TODO: Implement
-        else:
-                import_days(db, args, 30)
+        args.func(args)
 
