@@ -1,0 +1,32 @@
+ul.tag-list {
+        display: inline;
+}
+
+ul.tag-list li {
+        padding: 0.1em;
+        background-color: #eee;
+        border-radius: 5px;
+        display: -webkit-box;
+        -webkit-box-orient: horizontal;
+}
+
+ul.tag-list li.add-tag {
+        font-size: large;
+        cursor: pointer;
+}
+
+ul.tag-list li.add-tag input {
+        border: 1px #e9e9e9;
+}
+
+ul.tag-list li span.remove-tag {
+        display: none;
+        cursor: pointer;
+        background-color: #e1e1e1;
+}
+
+ul.tag-list li form {
+        display: -webkit-box;
+        -webkit-box-orient: horizontal;
+}
+

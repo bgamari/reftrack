@@ -19,9 +19,9 @@
                 $('page').src = "/documents/{{ doc.md5 }}/page/" + page_n + "?{{opts}}"
                 $('page').alt = "Page " + page_n;
                 $('page-num').firstChild.nodeValue = 'Page ' + (page_n+1) + ' of ' + n_pages;
-                var stateObj = { page_n: page_n };
+
                 var url = "/documents/{{ doc.md5 }}/view/" + page_n + "?{{opts}}";
-                history.pushState(stateObj, 'page ' + page_n, url);
+                history.pushState({page_n: page_n}, 'page ' + page_n, url);
         }
         window.onpopstate = function(event) {
                 page_n = event.state['page_n'];
@@ -47,16 +47,15 @@
         div#doc-container {
                 display: -webkit-box;
                 -webkit-box-orient: horizontal;
+                -webkit-box-pack: center;
                 background-color: #eee;
                 padding: 2em;
-                -webkit-box-pack: center;
         }
         .page-arrow {
                 display: -webkit-box;
                 -webkit-box-orient: horizontal;
                 font-size: xx-large;
                 text-align: center;
-                /*border: dotted 1px;*/
                 min-width: 5em;
                 cursor: pointer;
                 background-color: #ddd;

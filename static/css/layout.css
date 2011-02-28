@@ -4,6 +4,11 @@ body, html {
 	padding: 0;
 }
 
+/*div#page-head {
+        background-color: #00164c;
+        color: #fff;
+}*/
+
 div#content {
 	background-color: #fff;
 	height: 100%;
@@ -32,22 +37,5 @@ ul li {
 	list-style-type: disc;
 	margin-left: 1.5em;
 	margin-top: 0.4em;
-}
-
-code {
-	background-color: #f6f6f6;
-	border: 1px solid #999;
-	border-left: none;
-	border-right: none;
-	padding-left: 2px;
-	padding-right: 2px;
-	white-space: nowrap;
-}
-
-pre code {
-	border: none;
-	padding: 0;
-	background: none;
-	white-space: pre-wrap;
 }
 

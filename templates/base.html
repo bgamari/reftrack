@@ -4,12 +4,14 @@
                 <title>{% block page_title %}RefTrack{% endblock %}</title>
                 <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/layout.css" />
                 <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/spinner.css" />
+                <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/tags.css" />
                 <script type="text/javascript" src="{{ MEDIA_URL }}js/prototype.js"></script>
+                <script type="text/javascript" src="{{ MEDIA_URL }}js/tags.js"></script>
 
                 {% block extra_head %}{% endblock %}
         </head>
         <body>
-                <div class="pagehead" id="pagehead">
+                <div id="page-head">
                         <h1>Hello World</h1>
                 </div>
                 <div id="content">

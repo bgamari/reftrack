@@ -6,13 +6,12 @@ register = template.Library()
 
 def format_tag(ref, tag):
         name = cond_esc(tag['name'])
-        return '<li class="tag"><a href="/tags/%s">%s</a><a style="display:none;">remove</a></li>' % (name, name)
+        return '<li class="tag" data-name="%s"></li>' % name
 
 @register.filter
 def format_tags(ref):
-        if 'tags' not in ref: return ''
-        s = '<ul class="tag-list">'
-        s += ' '.join(format_tag(ref, tag) for tag in ref['tags'])
+        s = '<ul class="tag-list" data-refid="%s">' % ref['_id'].replace('/', '_')
+        s += ' '.join(format_tag(ref, tag) for tag in ref.get('tags', []))
         s += '</ul>'
         return mark_safe(s)
 
