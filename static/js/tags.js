@@ -7,7 +7,7 @@ function setup_tag(taglist, tag) {
         tag.appendChild(a);
 
         var e = new Element('span', {'class': "remove-tag"});
-        e.update('Remove')
+        e.update('X')
         tag.appendChild(e);
         tag.observe('mouseover', function() { e.style.display = 'block'; });
         tag.observe('mouseout', function() { e.style.display = 'none'; });

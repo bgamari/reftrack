@@ -28,6 +28,7 @@ def search(request):
                 results = list(db.refs.find(search))
                 for ref in results:
                         ref['tags'] = db.tags.find({'refs': ref['_id']})
+                        ref['document'] = db.documents.find_one({'ref': ref['_id']})
                 return render_to_response('refs/results.html', {'refs': results},
                                           context_instance=RequestContext(request))
         else:

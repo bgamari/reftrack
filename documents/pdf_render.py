@@ -10,7 +10,7 @@ def render_svg(dest, fname, page_n, width=700):
         page = doc.get_page(page_n)
         w,h = page.get_size()
         scale = width / w
-        surf = cairo.SVGSurface(dest, width, width/w*h)
+        surf = cairo.SVGSurface(dest, int(width), int(scale*h))
         cr = cairo.Context(surf)
         cr.set_source_rgb(1,1,1)
         cr.paint()
@@ -18,14 +18,15 @@ def render_svg(dest, fname, page_n, width=700):
         page.render(cr)
         surf.finish()
 
-def render_png(dest, fname, page_n, scale=1.5):
+def render_png(dest, fname, page_n, width=700):
         doc = poppler.document_new_from_file('file:///%s' % fname, '')
         if doc.get_n_pages() < page_n:
                 raise Http404
 
         page = doc.get_page(page_n)
         w,h = page.get_size()
-        surf = cairo.ImageSurface(cairo.FORMAT_RGB24, int(scale*w), int(scale*h))
+        scale = width / w
+        surf = cairo.ImageSurface(cairo.FORMAT_RGB24, int(width), int(scale*h))
         cr = cairo.Context(surf)
         cr.scale(scale, scale)
         cr.set_source_rgb(1,1,1)

@@ -26,16 +26,17 @@ def render_page(request, doc_id, page_n):
                 return HttpResponse('Invalid format', status=500)
         data = None
         filename = os.path.abspath(doc['filename'])
+        width = int(request.GET.get('width', 700))
         if format == 'png':
                 resp = HttpResponse(mimetype='image/png')
-                pdf_render.render_png(resp, filename, int(page_n))
+                pdf_render.render_png(resp, filename, int(page_n), width)
                 return resp
         elif format == 'svg':
                 resp = HttpResponse(mimetype='image/svg+xml')
                 if 'gzip' in request.META['HTTP_ACCEPT_ENCODING']:
                         strio = StringIO()
                         gz = gzip.GzipFile(fileobj=strio, mode='wb')
-                        pdf_render.render_svg(gz, filename, int(page_n))
+                        pdf_render.render_svg(gz, filename, int(page_n), width)
                         gz.close()
                         resp.write(strio.getvalue())
                         resp['Content-Encoding'] = 'gzip'

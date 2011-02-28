@@ -2,8 +2,25 @@
 {% load authorslist %}
 {% load format_tex %}
 {% load ref_url %}
+{% load tags %}
 
 {% block page_title %}[Ref Search]{% endblock %}
+
+{% block extra_head %}
+<style type='text/css'>
+        ul#results li.ref {
+                list-style-type: none;
+                padding-bottom: 0.5em;
+                padding-top: 0.5em;
+        }
+        ul#results .thumb {
+                min-width: 10em;
+                max-width: 10em;
+                float: left;
+                padding: 0.1em;
+        }
+</style>
+{% endblock %}
 
 {% block content %}
 {% if refs|length == 0 %}
@@ -11,9 +28,27 @@
 {% else %}
         <ul id="results">
         {% for ref in refs %}
-                <li class="ref-result">
-                        <span class="title"><a href="{{ ref|ref_url }}">{{ ref.title|format_tex }}</a></span>
-                        <span class="authors">{{ ref.authors|format_authors:3 }}</span>
+                <li class="ref">
+                        <span class='thumb'><a href="{{ ref|ref_url }}/show">
+                        {% if ref.document %}
+                                <img class='thumb' src='/documents/{{ ref.document|get_id }}/page/0?format=png&width=100' />
+                        {% endif %}
+                        </a></span>
+
+                        <div class="title"><a href="{{ ref|ref_url }}/show">{{ ref.title|format_tex }}</a></div>
+                        <div class="byline">
+                                <span class='authors'>{{ ref.authors|format_authors:3 }}</span>.
+                                <span class='journal'><i>{{ ref.journal }}</i></span>.
+                                {% if ref.volume %}
+                                Vol. {{ref.volume}}, 
+                                {% if ref.issue %}
+                                No. {{ref.issue }}
+                                {% endif %}
+                                {% endif %}
+                        </div>
+                        <div>{{ ref.pub_date }}</div>
+                        <div class='tags'>{{ ref|format_tags }}</div>
+                        <blockquote class='abstract'>{{ ref.abstract }}</blockquote>
                 </li>
         {% endfor %}
         </ul>

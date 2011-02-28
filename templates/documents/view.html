@@ -16,11 +16,11 @@
                         $('page').style.opacity = 1;
                         $('spinner-container').style.display = 'none';
                 };
-                $('page').src = "/documents/{{ doc.md5 }}/page/" + page_n + "?{{opts}}"
+                $('page').src = "/documents/{{ doc|get_id }}/page/" + page_n + "?{{opts}}"
                 $('page').alt = "Page " + page_n;
                 $('page-num').firstChild.nodeValue = 'Page ' + (page_n+1) + ' of ' + n_pages;
 
-                var url = "/documents/{{ doc.md5 }}/view/" + page_n + "?{{opts}}";
+                var url = "/documents/{{ doc|get_id }}/view/" + page_n + "?{{opts}}";
                 history.pushState({page_n: page_n}, 'page ' + page_n, url);
         }
         window.onpopstate = function(event) {
@@ -87,7 +87,7 @@
 <div>
         <h2>{{ ref.title }}</h2>
         <span class='authors'>{{ ref.authors|format_authors }}</span>
-        <div><a href="/refs/{{ ref|get_id }}">Back to Ref</a> | <a href="/documents/{{ doc.md5 }}">Download</a></div>
+        <div><a href="/refs/{{ ref|get_id }}/show">Back to Ref</a> | <a href="/documents/{{ doc|get_id }}">Download</a></div>
 </div>
 <div id='page-num' style='text-align: center;'>Hello World</div>
 <div id='doc-container'>
