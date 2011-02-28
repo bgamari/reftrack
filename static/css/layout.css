@@ -4,10 +4,21 @@ body, html {
 	padding: 0;
 }
 
-/*div#page-head {
-        background-color: #00164c;
+div#page-head {
+        background-color: #203060;
         color: #fff;
-}*/
+}
+
+div.nav a {
+        padding: 0.5em 1em;
+        margin: 0.2em;
+        background-color: #6070a0;
+        color: #eee;
+}
+
+div.nav a:hover {
+        color: #fff;
+}
 
 div#content {
 	background-color: #fff;

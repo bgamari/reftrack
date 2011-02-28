@@ -2,18 +2,41 @@
 {% load authorslist %}
 {% load format_tex %}
 {% load tags %}
+{% load ref_url %}
 
 {% block page_title %}[Ref] {{ ref.title }}{% endblock %}
 
+{% block extra_head %}
+<style type='text/css'>
+        ul.document-list {
+                display: -webkit-box;
+                -webkit-box-orient: horizontal;
+                -webkit-box-align: center;
+                -webkit-box-pack: center;
+        }
+        ul.document-list li {
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                border-radius: 2em;
+                text-align: center;
+                padding: 2em;
+                background-color: #eee;
+        }
+</style>
+{% endblock %}
+
 {% block content %}
         <h1 class='title'>{{ ref.title|format_tex }}</h1>
-        <span id='authors'>{{ ref.authors|format_authors }}</span>
-        {% if ref.abstract %}
-        <div>
-                <b>Abstract:</b>
-                <blockquote class='abstract'>{{ ref.abstract|format_tex }}</blockquote>
+        <div class='authors'>{{ ref.authors|format_authors:3 }}.</div>
+        <div class='journal'>
+                <i>{{ ref.journal }}</i>.
+                {% if ref.volume %}
+                Vol. {{ref.volume}}. 
+                {% if ref.issue %}
+                No. {{ref.issue }}
+                {% endif %}
+                {% endif %}
         </div>
-        {% endif %}
 
         {% if ref.arxiv_id %}
         <div>
@@ -29,18 +52,35 @@
         </div>
         {% endif %}
 
-        <div>
-                <b>Tags:</b>
+        <div style='margin: 0.5em;'>
                 {{ ref|format_tags }}
         </div>
 
+        <div>
+                <b>Abstract:</b>
+                <blockquote class='abstract'>
+                {% if ref.abstract %}
+                        {{ ref.abstract|format_tex }}
+                {% else %}
+                        Not available.
+                {% endif %}
+                </blockquote>
+        </div>
+
         <h2>Documents</h2>
-        <ul>
-        {% for f in docs %}
+        <ul class='document-list'>
+        {% for doc in docs %}
         <li>
-                {{ f.filename }}:
-                <a href='/documents/{{ f.md5 }}/view/0?format=png'>View</a> or
-                <a href='/documents/{{ f.md5 }}'>Download</a>
+                <div>{{ doc.filename }}</div>
+                <div>
+                        <a href='/documents/{{ doc|get_id }}/view/0?format=png'>
+                                <img src="/documents/{{ doc|get_id }}/page/0?format=png&width=200" />
+                        </a>
+                </div>
+                <div>
+                        <a href='/documents/{{ doc|get_id }}/view/0?format=png'>View</a> or
+                        <a href='/documents/{{ doc|get_id }}'>Download</a>
+                </div>
         </li>
         {% endfor %}
         </ul>

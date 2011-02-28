@@ -22,6 +22,16 @@
 
                 var url = "/documents/{{ doc|get_id }}/view/" + page_n + "?{{opts}}";
                 history.pushState({page_n: page_n}, 'page ' + page_n, url);
+
+                if (page_n == n_pages-1)
+                        $('next-page').style.visibility = 'hidden';
+                else
+                        $('next-page').style.visibility = 'visible';
+
+                if (page_n == 0)
+                        $('prev-page').style.visibility = 'hidden';
+                else
+                        $('prev-page').style.visibility = 'visible';
         }
         window.onpopstate = function(event) {
                 page_n = event.state['page_n'];
@@ -29,16 +39,10 @@
         };
         function next_page() {
                 page_n += 1;
-                if (page_n == n_pages-1)
-                        $('next-page').style.visibility = 'hidden';
-                $('prev-page').style.visibility = 'visible';
                 set_page(page_n);
         }
         function prev_page() {
                 page_n -= 1;
-                if (page_n == 0)
-                        $('prev-page').style.visibility = 'hidden';
-                $('next-page').style.visibility = 'visible';
                 set_page(page_n);
         }
 </script>
@@ -87,7 +91,7 @@
 <div>
         <h2>{{ ref.title }}</h2>
         <span class='authors'>{{ ref.authors|format_authors }}</span>
-        <div><a href="/refs/{{ ref|get_id }}/show">Back to Ref</a> | <a href="/documents/{{ doc|get_id }}">Download</a></div>
+        <div><a href="/refs/{{ ref|get_id }}/show">View Ref</a> | <a href="/documents/{{ doc|get_id }}">Download</a></div>
 </div>
 <div id='page-num' style='text-align: center;'>Hello World</div>
 <div id='doc-container'>

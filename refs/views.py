@@ -10,30 +10,37 @@ def index(request):
         return HttpResponse('Hello world!')
 
 def search(request):
-        if request.method == 'POST':
-                search = {}
-                if len(request.POST.get('author', '')) > 0:
-                        res = [re.compile(word, re.I) for word in request.POST['author'].split()]
-                        search['authors.surname'] = {'$all': res}
-
-                if len(request.POST.get('title', '')) > 0:
-                        res = [re.compile(word, re.I) for word in request.POST['title'].split()]
-                        search['title'] = {'$all': res}
-
-                if len(request.POST.get('keywords', '')) > 0:
-                        res = [re.compile(word, re.I) for word in request.POST['keywords'].split()]
-                        search['keywords'] = {'$all': res}
-
-                print search
-                results = list(db.refs.find(search))
-                for ref in results:
-                        ref['tags'] = db.tags.find({'refs': ref['_id']})
-                        ref['document'] = db.documents.find_one({'ref': ref['_id']})
-                return render_to_response('refs/results.html', {'refs': results},
-                                          context_instance=RequestContext(request))
-        else:
+        if 'q' not in request.GET:
                 return render_to_response('refs/search.html', {},
                                           context_instance=RequestContext(request))
+
+        search = {}
+        for w in request.GET['q'].split():
+                if w.startswith('author:'):
+                        a = re.compile(w.partition(':')[2], re.I)
+                        search.setdefault('authors.surname', {'$all': []})['$all'].append(a)
+
+                elif w.startswith('title:'):
+                        a = re.compile(w.partition(':')[2], re.I)
+                        search.setdefault('title', {'$all': []})['$all'].append(a)
+
+                elif w.startswith('tag:'):
+                        a = re.compile(w.partition(':')[2], re.I)
+                        search.setdefault('title', {'$all': []})['$all'].append(a)
+
+                else:
+                        search.setdefault('keywords', {'$all': []})['$all'].append(w)
+
+        print search
+        results = list(db.refs.find(search))
+        for ref in results:
+                ref['tags'] = db.tags.find({'refs': ref['_id']})
+                ref['document'] = db.documents.find_one({'ref': ref['_id']})
+
+        return render_to_response('refs/search.html',
+                                  {'refs': results,
+                                   'query': request.GET['q']},
+                                  context_instance=RequestContext(request))
 
 def show(request, ref_id):
         ref_id = ref_id.replace('_', '/')

@@ -2,7 +2,7 @@ function setup_tag(taglist, tag) {
         var refid = taglist.readAttribute('data-refid');
         var name = tag.readAttribute('data-name');
 
-        var a = new Element('a', {'href': '/tags/' + name});
+        var a = new Element('a', {'href': '/refs/search?q=tag:' + name});
         a.update(name);
         tag.appendChild(a);
 

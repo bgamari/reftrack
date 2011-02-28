@@ -5,7 +5,7 @@ ul.tag-list {
 }
 
 ul.tag-list li {
-        margin: 0 1em;
+        margin: 0 0.25em;
         padding: 0.2em 1em;
         background-color: #eee;
         border-radius: 5px;
@@ -27,9 +27,13 @@ ul.tag-list li span.remove-tag {
         cursor: pointer;
         background-color: #888;
         color: #eee;
-        margin: 0 0.5em;
-        padding-left: 0.1em;
-        padding-right: 0.1em;
+        margin: 0 0.2em;
+        padding: 0 0.2em;
+        border-radius: 5px;
+}
+
+ul.tag-list li span.remove-tag:hover {
+        background-color: #bbb;
 }
 
 ul.tag-list li form {
