@@ -10,27 +10,34 @@ def index(request):
         return HttpResponse('Hello world!')
 
 def search(request):
+        from itertools import chain
         if 'q' not in request.GET:
                 return render_to_response('refs/search.html', {},
                                           context_instance=RequestContext(request))
 
         query = request.GET['q']
         search = {}
-        for w in query.split():
-                if w.startswith('author:'):
-                        a = re.compile(w.partition(':')[2], re.I)
+
+        # First look for unqualified terms (e.g. hello)
+        for m in re.finditer(r'[\s^]([^\s:"]+)[\s$]', query):
+                search.setdefault('keywords', {'$all': []})['$all'].append(m.group(1).lower())
+
+        # Look for qualified terms (e.g. tag:"hello world")
+        qual_terms = re.finditer(r'(\w+):([^"\s]+)', query)
+        quoted_qual_terms = re.finditer(r'(\w+):"([^"]+)"', query)
+        for m in chain(qual_terms, quoted_qual_terms):
+                qual = m.group(1)
+                term = m.group(2)
+                a = re.compile(term, re.I)
+
+                if qual == 'author':
                         search.setdefault('authors.surname', {'$all': []})['$all'].append(a)
 
-                elif w.startswith('title:'):
-                        a = re.compile(w.partition(':')[2], re.I)
+                elif qual == 'title':
                         search.setdefault('title', {'$all': []})['$all'].append(a)
 
-                elif w.startswith('tag:'):
-                        a = re.compile(w.partition(':')[2], re.I)
-                        search.setdefault('tags.name', {'$all': []})['$all'].append(a)
-
-                else:
-                        search.setdefault('keywords', {'$all': []})['$all'].append(w.lower())
+                elif qual == 'tag':
+                        search.setdefault('tags.name', {'$all': []})['$all'].append(term)
 
         print search
         results = list(db.refs.find(search))
@@ -87,3 +94,8 @@ def rm_tag(request, ref_id):
         db.refs.save(ref)
         return HttpResponse(name)
 
+def tags(request):
+        tags = []
+        return render_to_response('refs/tags.html',
+                                  {'tags': tags},
+                                  context_instance=RequestContext(request))
