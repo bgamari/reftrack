@@ -8,10 +8,15 @@
 
 {% block extra_head %}
 <style type='text/css'>
+        ul#results {
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+        }
         ul#results li.ref {
                 list-style-type: none;
-                padding-bottom: 0.5em;
-                padding-top: 0.5em;
+                padding: 1em 1em;
+                background-color: #eee;
+                border-radius: 1em;
         }
         ul#results .thumb {
                 min-width: 10em;
@@ -41,11 +46,15 @@
         <ul id="results">
         {% for ref in refs %}
                 <li class="ref">
-                        <span class='thumb'><a href="{{ ref|ref_url }}/show">
-                        {% if ref.document %}
+                        {% if show_thumbs %}
+                        <span class='thumb'>
+                                {% if ref.document %}
+                                <a href="{{ ref|ref_url }}/show">
                                 <img class='thumb' src='/documents/{{ ref.document|get_id }}/page/0?format=png&width=100' />
+                                </a>
+                                {% endif %}
+                        </span>
                         {% endif %}
-                        </a></span>
 
                         <div class="title"><a href="{{ ref|ref_url }}/show">{{ ref.title|format_tex }}</a></div>
                         <div class="byline">
