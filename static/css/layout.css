@@ -10,8 +10,9 @@ div#page-head {
 }
 
 div.nav a {
+        display: inline-block;
         padding: 0.5em 1em;
-        margin: 0.2em;
+        margin: 0 1em;
         background-color: #6070a0;
         color: #eee;
 }
@@ -27,11 +28,18 @@ div#content {
 	padding: 0 1.2em 1.2em 1.2em;
 }
 
-h1.title {
+h1 {
         font-size: x-large;
         font-weight: bold;
-	margin: 0.3em 0;
+        margin: 0;
 	padding: 0.1em 0;
+}
+
+h2 {
+        font-size: large;
+        font-weight: bold;
+        margin: 0;
+	padding: 0.5em 0;
 }
 
 blockquote {

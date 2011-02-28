@@ -32,6 +32,8 @@
 {% endblock %}
 
 {% block content %}
+<h2>Search</h2>
+
 <div>
         <form action="/refs/search" method="get">
           {% csrf_token %}
@@ -50,7 +52,7 @@
                         <span class='thumb'>
                                 {% if ref.document %}
                                 <a href="{{ ref|ref_url }}/show">
-                                <img class='thumb' src='/documents/{{ ref.document|get_id }}/page/0?format=png&width=100' />
+                                        <img class='thumb' src='/documents/{{ ref.document|get_id }}/page/0?format=png&width=100' />
                                 </a>
                                 {% endif %}
                         </span>
@@ -58,9 +60,9 @@
 
                         <div class="title"><a href="{{ ref|ref_url }}/show">{{ ref.title|format_tex }}</a></div>
                         <div class="byline">
-                                <span class='authors'>{{ ref.authors|format_authors:3 }}.</span>
-                                <span class='journal'><i>{{ ref.journal }}</i>.</span>
-                                {% if ref.volume %}
+                                <span class='authors'>{{ ref.authors|format_authors:3 }}</span>
+                                <span class='journal'><i>{{ ref.journal }}</i></span>
+                                {% if ref.volume %}.
                                 Vol. {{ref.volume}}, 
                                 {% if ref.issue %}
                                 No. {{ref.issue }}

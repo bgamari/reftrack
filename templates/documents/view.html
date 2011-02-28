@@ -9,18 +9,20 @@
 <script type='text/javascript'>
         var page_n = {{ page_n }};
         var n_pages = {{ n_pages }};
-        function set_page() {
+        var width = {{ width }};
+
+        function update_page() {
                 $('spinner-container').style.display = 'block';
                 $('page').style.opacity = 0.2;
                 $('page').onload = function() {
                         $('page').style.opacity = 1;
                         $('spinner-container').style.display = 'none';
                 };
-                $('page').src = "/documents/{{ doc|get_id }}/page/" + page_n + "?{{opts}}"
+                $('page').src = "/documents/{{ doc|get_id }}/page/" + page_n + "?format={{format}}&width=" + width;
                 $('page').alt = "Page " + page_n;
                 $('page-num').firstChild.nodeValue = 'Page ' + (page_n+1) + ' of ' + n_pages;
 
-                var url = "/documents/{{ doc|get_id }}/view/" + page_n + "?{{opts}}";
+                var url = "/documents/{{ doc|get_id }}/view/" + page_n + "?format={{format}}&width=" + width;
                 history.pushState({page_n: page_n}, 'page ' + page_n, url);
 
                 if (page_n == n_pages-1)
@@ -35,25 +37,36 @@
         }
         window.onpopstate = function(event) {
                 page_n = event.state['page_n'];
-                set_page();
+                update_page();
         };
         function next_page() {
                 page_n += 1;
-                set_page(page_n);
+                update_page();
         }
         function prev_page() {
                 page_n -= 1;
-                set_page(page_n);
+                update_page();
+        }
+        function zoom_in() {
+                width = Math.round(width*1.2);
+                update_page();
+        }
+        function zoom_out() {
+                width = Math.round(width/1.2);
+                update_page();
         }
 </script>
 
 <style type='text/css'>
+        div#doc-viewer {
+                background-color: #eee;
+                margin: 1em;
+                padding: 2em;
+        }
         div#doc-container {
                 display: -webkit-box;
                 -webkit-box-orient: horizontal;
                 -webkit-box-pack: center;
-                background-color: #eee;
-                padding: 2em;
         }
         .page-arrow {
                 display: -webkit-box;
@@ -63,6 +76,7 @@
                 min-width: 5em;
                 cursor: pointer;
                 background-color: #ddd;
+                color: #666;
                 border-radius: 15px;
         }
         .page-arrow:hover {
@@ -84,36 +98,55 @@
                 background-color: #fff;
                 border-radius: 15px;
         }
+        .zoom-button {
+                font-size: x-large;
+                font-weight: bold;
+                color: #000;
+                padding: 1em;
+                margin: 1em;
+                background-color: #ccc;
+                border-radius: 1em;
+                display: inline-block;
+        }
+        .zoom-button:hover {
+                background-color: #ddd;
+        }
 </style>
 {% endblock %}
 
 {% block content %}
 <div>
-        <h2>{{ ref.title }}</h2>
+        <h1 class='title'>{{ ref.title }}</h1>
         <span class='authors'>{{ ref.authors|format_authors }}</span>
         <div><a href="/refs/{{ ref|get_id }}/show">View Ref</a> | <a href="/documents/{{ doc|get_id }}">Download</a></div>
 </div>
-<div id='page-num' style='text-align: center;'>Hello World</div>
-<div id='doc-container'>
-        <span id='prev-page' class='page-arrow' onclick="prev_page()">←</span>
-        <span id='spinner-container'>
-                <div id='spinner' class='spinner'>
-                        <div class="bar1"></div>
-                        <div class="bar2"></div>
-                        <div class="bar3"></div>
-                        <div class="bar4"></div>
-                        <div class="bar5"></div>
-                        <div class="bar6"></div>
-                        <div class="bar7"></div>
-                        <div class="bar8"></div>
-                </div>
-        </span>
-        <img id='page' />
-        <span id='next-page' class='page-arrow' onclick="next_page()">→</span>
+<div id='doc-viewer'>
+        <div id='page-num' style='text-align: center; font-weight: bold;'>Hello World</div>
+        <div id='zoom-control' style='text-align: center;'>
+                <a href='javascript:zoom_out()'><span class='zoom-button'>−</span></a>
+                <a href='javascript:zoom_in()'><span class='zoom-button'>+</span></a>
+        </div>
+        <div id='doc-container'>
+                <span id='prev-page' class='page-arrow' onclick="prev_page()">←</span>
+                <span id='spinner-container'>
+                        <div id='spinner' class='spinner'>
+                                <div class="bar1"></div>
+                                <div class="bar2"></div>
+                                <div class="bar3"></div>
+                                <div class="bar4"></div>
+                                <div class="bar5"></div>
+                                <div class="bar6"></div>
+                                <div class="bar7"></div>
+                                <div class="bar8"></div>
+                        </div>
+                </span>
+                <img id='page' />
+                <span id='next-page' class='page-arrow' onclick="next_page()">→</span>
+        </div>
 </div>
 
 <script type='text/javascript'>
-        set_page();
+        update_page();
 </script>
 {% endblock %}
 

@@ -26,7 +26,7 @@ def render_page(request, doc_id, page_n):
                 return HttpResponse('Invalid format', status=500)
         data = None
         filename = os.path.abspath(doc['filename'])
-        width = int(request.GET.get('width', 700))
+        width = float(request.GET.get('width', 700))
         if format == 'png':
                 resp = HttpResponse(mimetype='image/png')
                 pdf_render.render_png(resp, filename, int(page_n), width)
@@ -54,18 +54,21 @@ def view(request, doc_id, page_n=1):
         filename = os.path.abspath(doc['filename'])
         n_pages = pdf_render.get_n_pages(filename)
 
-        opts = ''
         format = request.GET.get('format', 'svg')
+        args = {'ref': ref, 'doc': doc,
+                'page_n': page_n, 'n_pages': n_pages,
+                'format': format}
         if format == 'svg':
-                width = int(request.GET.get('width', 700))
-                opts += 'format=svg&width=%d' % width
+                width = float(request.GET.get('width', 700))
+                args['width'] = width
         elif format == 'png':
-                scale = float(request.GET.get('scale', 1))
-                if scale > 10: return HttpResponse('Scale too large', status=500)
-                opts += 'format=png&scale=%f' % scale
+                width = float(request.GET.get('width', 1))
+                if width > 10000:
+                        return HttpResponse('Requested size too large', status=500)
+                args['width'] = width
         else:
                 return HttpResponse('Invalid format', status=500)
-        args = {'ref': ref, 'doc': doc, 'page_n': page_n, 'n_pages': n_pages, 'opts': opts}
+
         return render_to_response('documents/view.html', args,
                                   context_instance=RequestContext(request))
 
