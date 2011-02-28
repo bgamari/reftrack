@@ -1,7 +1,7 @@
 body, html {
-	background-color: #f6f6f6;
-	margin: 0;
-	padding: 0;
+        background-color: #f6f6f6;
+        margin: 0;
+        padding: 0;
 }
 
 div#page-head {
@@ -22,39 +22,39 @@ div.nav a:hover {
 }
 
 div#content {
-	background-color: #fff;
-	height: 100%;
-	margin: 0 auto;
-	padding: 0 1.2em 1.2em 1.2em;
+        background-color: #fff;
+        height: 100%;
+        margin: 0 auto;
+        padding: 0 1.2em 1.2em 1.2em;
 }
 
 h1 {
         font-size: x-large;
         font-weight: bold;
         margin: 0;
-	padding: 0.1em 0;
+        padding: 1em 0;
 }
 
 h2 {
         font-size: large;
         font-weight: bold;
         margin: 0;
-	padding: 0.5em 0;
+        padding: 0.5em 0;
 }
 
 blockquote {
-	line-height: 1.8em;
-	margin-top: 0;
-	margin-bottom: 1em;
+        line-height: 1.8em;
+        margin-top: 0;
+        margin-bottom: 1em;
 }
 
 ul {
-	padding-left: 1.5em;
+        padding-left: 1.5em;
 }
 
 ul li {
-	list-style-type: disc;
-	margin-left: 1.5em;
-	margin-top: 0.4em;
+        list-style-type: disc;
+        margin-left: 1.5em;
+        margin-top: 0.4em;
 }
 

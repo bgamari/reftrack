@@ -30,7 +30,7 @@ def search(request):
                         search.setdefault('tags.name', {'$all': []})['$all'].append(a)
 
                 else:
-                        search.setdefault('keywords', {'$all': []})['$all'].append(w)
+                        search.setdefault('keywords', {'$all': []})['$all'].append(w.lower())
 
         print search
         results = list(db.refs.find(search))

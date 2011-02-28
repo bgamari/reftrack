@@ -62,7 +62,7 @@ def view(request, doc_id, page_n=1):
                 width = float(request.GET.get('width', 700))
                 args['width'] = width
         elif format == 'png':
-                width = float(request.GET.get('width', 1))
+                width = float(request.GET.get('width', 700))
                 if width > 10000:
                         return HttpResponse('Requested size too large', status=500)
                 args['width'] = width

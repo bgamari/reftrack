@@ -11,8 +11,6 @@
         ul.document-list {
                 display: -webkit-box;
                 -webkit-box-orient: horizontal;
-                -webkit-box-align: center;
-                -webkit-box-pack: center;
         }
         ul.document-list li {
                 display: -webkit-box;
@@ -82,6 +80,8 @@
                         <a href='/documents/{{ doc|get_id }}'>Download</a>
                 </div>
         </li>
+        {% empty %}
+        None ☹
         {% endfor %}
         </ul>
 {% endblock %}
