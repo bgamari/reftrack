@@ -14,7 +14,7 @@ function setup_tag(taglist, tag) {
         e.observe('click', function() {
                         console.log('rm_tag ' + name);
                         new Ajax.Request('/refs/' + refid + '/tags/remove?name=' + name, {
-                                method: 'GET',
+                                method: 'POST',
                                 onSuccess: function() {
                                         console.log('Removed');
                                         taglist.removeChild(tag);
@@ -41,7 +41,7 @@ function setup_taglist(taglist) {
         var form = new Element('form', {
                         'id': 'add-tag-form',
                         'action': '/refs/' + refid + '/tags/add',
-                        'method': 'get',
+                        'method': 'POST',
         });
         form.appendChild(input);
         form.appendChild(submit);

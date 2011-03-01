@@ -33,3 +33,7 @@ def generate_keywords(ref):
                   if len(kw) > 3 and kws not in ignore_words]
         return kws
 
+def refs_with_docs(db):
+        refids = [ doc.ref for doc in db.documents.find() ]
+        return db.refs.find({'_id': {'$in': refids}})
+

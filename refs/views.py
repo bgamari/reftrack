@@ -19,8 +19,8 @@ def search(request):
         search = {}
 
         # First look for unqualified terms (e.g. hello)
-        for m in re.finditer(r'[\s^]([^\s:"]+)[\s$]', query):
-                search.setdefault('keywords', {'$all': []})['$all'].append(m.group(1).lower())
+        for m in re.finditer(r'(\s|\A)([^\s:"]+)(\s|\Z)', query):
+                search.setdefault('keywords', {'$all': []})['$all'].append(m.group(2).lower())
 
         # Look for qualified terms (e.g. tag:"hello world")
         qual_terms = re.finditer(r'(\w+):([^"\s]+)', query)
@@ -39,8 +39,10 @@ def search(request):
                 elif qual == 'tag':
                         search.setdefault('tags.name', {'$all': []})['$all'].append(term)
 
+        if search == {}:
+                return HttpResponse('No query terms', 500)
         print search
-        results = list(db.refs.find(search))
+        results = list(db.refs.find(search, limit=1000))
         for ref in results:
                 ref['document'] = db.documents.find_one({'ref': ref['_id']})
 
@@ -65,7 +67,7 @@ def add_tag(request, ref_id):
         ref = db.refs.find_one({'_id': ref_id})
         if ref is None: raise Http404
 
-        name = request.GET.get('name').strip()
+        name = request.POST.get('name').strip()
         if name == '' or name is None:
                 return HttpResponse('Needs tag name', status=500)
 
@@ -82,7 +84,7 @@ def rm_tag(request, ref_id):
         ref = db.refs.find_one({'_id': ref_id})
         if ref is None: raise Http404
 
-        name = request.GET.get('name').strip()
+        name = request.POST.get('name').strip()
         if name == '' or name is None:
                 return HttpResponse('Needs tag', status=500)
 
@@ -94,7 +96,7 @@ def rm_tag(request, ref_id):
         db.refs.save(ref)
         return HttpResponse(name)
 
-def tags(request):
+def tags_list(request):
         tags = []
         return render_to_response('refs/tags.html',
                                   {'tags': tags},

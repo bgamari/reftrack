@@ -25,7 +25,7 @@
 
 {% block content %}
         <h1 class='title'>{{ ref.title|format_tex }}</h1>
-        <div class='authors'>{{ ref.authors|format_authors:3 }}.</div>
+        <div class='authors'>{{ ref.authors|format_authors:10 }}.</div>
         <div class='journal'>
                 <i>{{ ref.journal }}</i>
                 {% if ref.volume %}.
