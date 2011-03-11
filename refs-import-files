@@ -26,8 +26,8 @@ def scrape_pdf(fname):
         if doi:
                 logging.debug('DOI of %s is %s' % (f, doi))
                 m = crossref.lookup_doi(doi)
-                m['_id'] = 'doi:%s' % doi
                 if m:
+                        metad['_id'] = 'doi:%s' % doi
                         metad.update(m)
                 else:
                         logging.info('Failed to get crossref metadata for %s' % f)
@@ -35,8 +35,8 @@ def scrape_pdf(fname):
         elif arxiv_id:
                 logging.debug('arXiv ID of %s is %s' % (f, arxiv_id))
                 m = arxiv.lookup_arxiv(arxiv_id)
-                m['_id'] = 'arxiv:%s' % arxiv_id
                 if m:
+                        metad['_id'] = 'arxiv:%s' % arxiv_id
                         metad.update(m)
                 else:
                         logging.info('Failed to get arXiv metadata for %s' % f)
@@ -48,6 +48,7 @@ def scrape_pdf(fname):
         total += 1
         return metad
 
+import traceback
 files = sys.argv[1:]
 for f in files:
         h = hashlib.md5()
@@ -55,11 +56,11 @@ for f in files:
         md5 = h.hexdigest()
 
         ref = None
-        ref = scrape_pdf(f)
         try:
                 ref = scrape_pdf(f)
         except Exception as e:
                 logging.warn('Error processing %s: %s' % (f, e))
+                logging.debug(traceback.format_exc())
                 continue
 
         if 'title' not in ref or 'authors' not in ref:

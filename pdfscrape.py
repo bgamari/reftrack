@@ -5,7 +5,8 @@ import re
 import subprocess
 from collections import namedtuple
 
-doi_re = re.compile(r'(?:doi|DOI)?[\s\.\:]{0,3}(10\.\d{4}/[\d\w\-\.\+]+)')
+doi_re = re.compile(r'(?:doi|DOI)?[\s\.\:/]{0,3}(10\.\d{4}/[\(\)\d\w\-\.\+/]+)', re.I)
+pnas_doi_re = re.compile(r'doi(10\.1073pnas.\d+)', re.I)
 arxiv_re = re.compile(r'arXiv:(\d{4,4}\.\d{4,4})(v\d+)?')
 
 def find_ids(file):
@@ -15,7 +16,7 @@ def find_ids(file):
 
         m = doi_re.search(txt)
         if m:
-                metadata['doi'] = m.group(1)
+                metadata['doi'] = m.group(1).rstrip('.') # Some journals end sentence with doi
 
         m = arxiv_re.search(txt)
         if m:

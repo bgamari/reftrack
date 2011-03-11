@@ -26,9 +26,9 @@ def search(request):
         qual_terms = re.finditer(r'(\w+):([^"\s]+)', query)
         quoted_qual_terms = re.finditer(r'(\w+):"([^"]+)"', query)
         for m in chain(qual_terms, quoted_qual_terms):
-                qual = m.group(1)
-                term = m.group(2)
-                a = re.compile(term, re.I)
+                qual = m.group(1) # e.g. 'tag'
+                term = m.group(2) # e.g. 'hello world'
+                a = re.compile('^%s$' % term, re.I)
 
                 if qual == 'author':
                         search.setdefault('authors.surname', {'$all': []})['$all'].append(a)
@@ -39,8 +39,14 @@ def search(request):
                 elif qual == 'tag':
                         search.setdefault('tags.name', {'$all': []})['$all'].append(term)
 
+                elif qual == 'with':
+                        if term in ['document', 'doc']:
+                                search['documents'] = {'$exists': True}
+
         if search == {}:
-                return HttpResponse('No query terms', 500)
+                return render_to_response('refs/search.html', {'query': query},
+                                          context_instance=RequestContext(request))
+
         print search
         results = list(db.refs.find(search, limit=1000))
         for ref in results:

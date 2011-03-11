@@ -45,6 +45,12 @@
 {% if refs|length == 0 %}
         <h1>No results found</h1>
 {% else %}
+        {% if show_thumbs %}
+                <a href='/refs/search?q={{ query }}&show_thumbs=0'>Hide Thumbnails</a>
+        {% else %}
+                <a href='/refs/search?q={{ query }}&show_thumbs=1'>Show Thumbnails</a>
+        {% endif %}
+
         <ul id="results">
         {% for ref in refs %}
                 <li class="ref">
