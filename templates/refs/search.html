@@ -23,7 +23,7 @@
                 max-width: 10em;
                 min-height: 5em;
                 float: left;
-                padding: 0.1em;
+                padding: 0.1em 1em;
         }
         div.title {
                 font-weight: bold;
@@ -42,43 +42,38 @@
         </form>
 </div>
 
-{% if refs|length == 0 %}
+{% if refs and refs|length == 0 %}
         <h1>No results found</h1>
-{% else %}
+{% endif %}
+{% if refs and refs|length > 0 %}
+        <ul id="results">
         {% if show_thumbs %}
-                <a href='/refs/search?q={{ query }}&show_thumbs=0'>Hide Thumbnails</a>
+        <a href='/refs/search?q={{ query }}&show_thumbs=0'>Hide Thumbnails</a>
         {% else %}
-                <a href='/refs/search?q={{ query }}&show_thumbs=1'>Show Thumbnails</a>
+        <a href='/refs/search?q={{ query }}&show_thumbs=1'>Show Thumbnails</a>
         {% endif %}
 
-        <ul id="results">
         {% for ref in refs %}
-                <li class="ref">
-                        {% if show_thumbs %}
-                        <span class='thumb'>
-                                {% if ref.document %}
-                                <a href="{{ ref|ref_url }}/show">
-                                        <img class='thumb' src='/documents/{{ ref.document|get_id }}/page/0?format=png&width=100' />
-                                </a>
-                                {% endif %}
-                        </span>
+        <li class="ref">
+                {% if show_thumbs %}
+                <span class='thumb'>
+                        {% if ref.documents.0 %}
+                        <a href="{{ ref|ref_url }}/show">
+                                <img class='thumb' src='/documents/{{ ref.documents.0 }}/page/0?format=png&width=300' />
+                        </a>
                         {% endif %}
+                </span>
+                {% endif %}
 
-                        <div class="title"><a href="{{ ref|ref_url }}/show">{{ ref.title|format_tex }}</a></div>
-                        <div class="byline">
-                                <span class='authors'>{{ ref.authors|format_authors:3 }}</span>
-                                <span class='journal'><i>{{ ref.journal }}</i></span>
-                                {% if ref.volume %}.
-                                Vol. {{ref.volume}}, 
-                                {% if ref.issue %}
-                                No. {{ref.issue }}
-                                {% endif %}
-                                {% endif %}
-                        </div>
-                        <div>{{ ref.pub_date }}</div>
-                        <div class='tags'>{{ ref|format_tags }}</div>
-                        <blockquote class='abstract'>{{ ref.abstract }}</blockquote>
-                </li>
+                <div class="title"><a href="{{ ref|ref_url }}/show">{{ ref.title|format_tex }}</a></div>
+                <div class="byline">
+                        <span class='authors'>{{ ref.authors|format_authors:3 }}</span>.
+                        <span class='proper_title'>{{ ref.journal }}</span>{% if ref.volume %}. Vol. {{ref.volume}}, {% if ref.issue %}No. {{ref.issue }}.{% endif %}{% endif %}
+                </div>
+                {% if ref.pub_date %}<div>{{ ref.pub_date }}</div>{% endif %}
+                <div class='tags'>{{ ref|format_tags }}</div>
+                <blockquote class='abstract'>{{ ref.abstract }}</blockquote>
+        </li>
         {% endfor %}
         </ul>
 {% endif %}

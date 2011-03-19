@@ -2,11 +2,30 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
         <head>
                 <title>{% block page_title %}RefTrack{% endblock %}</title>
+                <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/base.css" />
                 <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/layout.css" />
                 <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/spinner.css" />
                 <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/tags.css" />
                 <script type="text/javascript" src="{{ MEDIA_URL }}js/prototype.js"></script>
                 <script type="text/javascript" src="{{ MEDIA_URL }}js/tags.js"></script>
+                <script type="text/javascript">
+                        function getCookie(name) {
+                                var cookieValue = null;
+                                if (document.cookie && document.cookie != '') {
+                                        var cookies = document.cookie.split(';');
+                                        for (var i = 0; i < cookies.length; i++) {
+                                                var cookie = cookies[i].strip();
+                                                // Does this cookie string begin with the name we want?
+                                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                                        break;
+                                                }
+                                        }
+                                }
+                                return cookieValue;
+                        }
+                        ajax_headers = {'X-CSRFToken': getCookie('csrftoken')};
+                </script>
 
                 {% block extra_head %}{% endblock %}
         </head>

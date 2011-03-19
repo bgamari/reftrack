@@ -22,7 +22,7 @@ ul.tag-list li.add-tag {
         cursor: pointer;
 }
 
-ul.tag-list li.add-tag input {
+ul.tag-list input {
         border: 1px #e9e9e9;
 }
 

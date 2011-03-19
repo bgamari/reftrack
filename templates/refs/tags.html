@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load authorslist %}
+{% load format_tex %}
+{% load tags %}
+{% load ref_url %}
+
+{% block page_title %}[Ref] {{ ref.title }}{% endblock %}
+
+{% block extra_head %}
+<style type='text/css'>
+        ul.document-list {
+                display: -webkit-box;
+                -webkit-box-orient: horizontal;
+        }
+        ul.document-list li {
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                border-radius: 2em;
+                text-align: center;
+                padding: 2em;
+                background-color: #eee;
+        }
+</style>
+{% endblock %}
+
+{% block content %}
+<ul class='cloud'>
+        {% for t in tags %}
+        <li class='tag-7'><a href='/refs/search?q=tag:"{{t}}"'>{{t}}</a></li>
+        {% endfor %}
+</ul>
+{% endblock %}
+

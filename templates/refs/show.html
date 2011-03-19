@@ -18,7 +18,16 @@
                 border-radius: 2em;
                 text-align: center;
                 padding: 2em;
+                background-color: #ddd;
+        }
+        ul.document-list li:hover {
                 background-color: #eee;
+        }
+        ul.document-list li img {
+                opacity: 0.75;
+        }
+        ul.document-list li:hover img {
+                opacity: 1.0;
         }
 </style>
 {% endblock %}
@@ -27,14 +36,9 @@
         <h1 class='title'>{{ ref.title|format_tex }}</h1>
         <div class='authors'>{{ ref.authors|format_authors:10 }}.</div>
         <div class='journal'>
-                <i>{{ ref.journal }}</i>
-                {% if ref.volume %}.
-                Vol. {{ref.volume}}. 
-                {% if ref.issue %}
-                No. {{ref.issue }}
-                {% endif %}
-                {% endif %}
+                <span class='proper_title'>{{ ref.journal }}</span>{% if ref.volume %}. Vol. {{ref.volume}}. {% if ref.issue %}No. {{ref.issue }}{% endif %}{% endif %}{% if ref.year %} ({{ref.year}}){% endif %}
         </div>
+        {% if ref.pub_date %}<div>Publication date: {{ ref.pub_date }}</div>{% endif %}
 
         {% if ref.arxiv_id %}
         <div>
@@ -71,13 +75,13 @@
         <li>
                 <div>{{ doc.filename }}</div>
                 <div>
-                        <a href='/documents/{{ doc|get_id }}/view/0?format=png'>
-                                <img src="/documents/{{ doc|get_id }}/page/0?format=png&width=200" />
+                        <a href='/documents/{{ doc.id }}/view/0?format=png'>
+                                <img src="/documents/{{ doc.id }}/page/0?format=png&width=200" />
                         </a>
                 </div>
                 <div>
-                        <a href='/documents/{{ doc|get_id }}/view/0?format=png'>View</a> or
-                        <a href='/documents/{{ doc|get_id }}'>Download</a>
+                        <a href='/documents/{{ doc.id }}/view/0?format=png'>View</a> or
+                        <a href='/documents/{{ doc.id }}'>Download</a>
                 </div>
         </li>
         {% empty %}

@@ -1,0 +1,82 @@
+{% load ref_url %}
+<script type='text/javascript'>
+        var page_n = {{ page_n }};
+        var n_pages = {{ n_pages }};
+        var width = {{ width }};
+
+        function update_page() {
+                $('spinner-container').style.display = 'block';
+                $('page').style.opacity = 0.2;
+                $('page').onload = function() {
+                        $('page').style.opacity = 1;
+                        $('spinner-container').style.display = 'none';
+                };
+                $('page').src = "/documents/{{ doc|get_id }}/page/" + page_n + "?format={{format}}&width=" + width;
+                $('page').alt = "Page " + page_n;
+                $('page-num').firstChild.nodeValue = 'Page ' + (page_n+1) + ' of ' + n_pages;
+
+                var url = "/documents/{{ doc|get_id }}/view/" + page_n + "?format={{format}}&width=" + width;
+                history.pushState({page_n: page_n}, 'page ' + page_n, url);
+
+                if (page_n == n_pages-1)
+                        $('next-page').style.visibility = 'hidden';
+                else
+                        $('next-page').style.visibility = 'visible';
+
+                if (page_n == 0)
+                        $('prev-page').style.visibility = 'hidden';
+                else
+                        $('prev-page').style.visibility = 'visible';
+        }
+        window.onpopstate = function(event) {
+                page_n = event.state['page_n'];
+                update_page();
+        };
+        function next_page() {
+                page_n += 1;
+                update_page();
+        }
+        function prev_page() {
+                page_n -= 1;
+                update_page();
+        }
+        function zoom_in() {
+                width = Math.round(width*1.2);
+                update_page();
+        }
+        function zoom_out() {
+                width = Math.round(width/1.2);
+                update_page();
+        }
+</script>
+
+<div id='doc-viewer'>
+        <div id='page-num' style='text-align: center; font-weight: bold;'>Hello World!</div>
+        <div id='zoom-control' style='text-align: center;'>
+                <a href='javascript:zoom_out()'><span class='zoom-button'>−</span></a>
+                <a href='javascript:zoom_in()'><span class='zoom-button'>+</span></a>
+        </div>
+        <div id='doc-container'>
+                <span id='prev-page' class='page-arrow' onclick="prev_page()">←</span>
+                <span id='spinner-container'>
+                        <div id='spinner' class='spinner'>
+                                <div class="bar1"></div>
+                                <div class="bar2"></div>
+                                <div class="bar3"></div>
+                                <div class="bar4"></div>
+                                <div class="bar5"></div>
+                                <div class="bar6"></div>
+                                <div class="bar7"></div>
+                                <div class="bar8"></div>
+                        </div>
+                </span>
+                <img id='page' />
+                <span id='next-page' class='page-arrow' onclick="next_page()">→</span>
+        </div>
+</div>
+
+<script type='text/javascript'>
+        update_page();
+</script>
+</div>
+
