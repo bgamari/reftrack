@@ -70,6 +70,7 @@ def parse_arxiv_record(et):
         md['arxiv_categories'] = m.findtext('arxiv:categories', namespaces=prefixes).split()
         md['arxiv_id'] = m.findtext('arxiv:id', namespaces=prefixes)
         md['pub_date'] = parse_date(m.findtext('arxiv:created', namespaces=prefixes))
+        md['year'] = md['pub_date'].year
         md['type'] = 'journal_article'
         md['arxiv_journal_ref'] = m.findtext('arxiv:journal-ref', namespaces=prefixes)
         return md

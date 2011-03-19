@@ -3,14 +3,12 @@
 import sys
 import logging
 import hashlib
-import pymongo
+import database as db
 
 import index
 import pdfscrape
 import arxiv
 import crossref
-
-db = pymongo.Connection().reftrack
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -67,14 +65,14 @@ for f in files:
                 logging.warn('Insufficient metadata for %s' % f)
                 continue
 
-        dbref = index.find_ref(db, ref)
+        dbref = index.find_ref(ref)
         refid = None
         if dbref is None:
                 refid = db.refs.save(ref)
         else:
                 refid = dbref['_id']
 
-        file = db.documents.find_one({'md5': md5})
+        file = db.documents.get(md5)
         if file is None:
                 file = {
                         '_id': md5,
@@ -82,7 +80,7 @@ for f in files:
                         'ref': refid,
                         'filename': f
                 }
-                db.documents.save(file)
+                db.docs.save(file)
         elif file['ref'] != refid:
                 logging.warn('%s (md5=%s): existing file %s in database already already assigned to ref %s' %
                              (f, md5, file['filename'], ref['_id']))

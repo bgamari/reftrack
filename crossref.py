@@ -57,10 +57,7 @@ def lookup_doi(doi):
                 return None
 
 if __name__ == '__main__':
-        import sys
-        dois = sys.argv[1:]
-        if len(dois) == 0:
-                dois = ['10.1577/H02-043', '10.1021/jp035514+']
+        dois = ['10.1577/H02-043', '10.1021/jp035514+']
         for doi in dois:
                 print lookup_doi(doi)
 

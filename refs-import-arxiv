@@ -3,16 +3,28 @@
 from datetime import date, timedelta
 from datetime import datetime
 import logging
-import pymongo
+import database as db
 
 from index import find_ref
 import arxiv
 
 logging.basicConfig(level=logging.DEBUG)
 
-def oai_import(args, wait=30):
+def oai_import(arxiv_id):
+        arxiv.lookup_arxiv(arxiv_id)
+        d = find_ref(ref)
+        if d is None:
+                new += 1
+                d = {}
+        d.update(ref)
+        d['_id'] = 'arxiv:%s' % d['arxiv_id']
+        if args.get('dryrun', False):
+                print d
+        else:
+                db.refs.save(d)
+
+def oai_import_set(args, wait=30):
         """ Imports records going back in time """
-        db = pymongo.Connection().reftrack
         day = args.start
         while True:
                 _until = date.today() - timedelta(days=day)
@@ -29,13 +41,16 @@ def oai_import(args, wait=30):
                 n = 0
                 new = 0
                 for ref in refs:
-                        d = find_ref(db, ref)
+                        d = find_ref(ref)
                         if d is None:
                                 new += 1
                                 d = {}
                         d.update(ref)
                         d['_id'] = 'arxiv:%s' % d['arxiv_id']
-                        db.refs.save(d)
+                        if args.get('dryrun', False):
+                                print d
+                        else:
+                                db.refs.save(d)
                         n += 1
 
                 dt = time.time()-t0
@@ -60,14 +75,20 @@ if __name__ == '__main__':
         p = sps.add_parser('list-sets', help='List available sets')
         p.set_defaults(func=list_sets)
 
-        p = sps.add_parser('import', help='Import references from OAI')
+        p = sps.add_parser('import', help='Import single arXiv ID')
+        p.add_argument('-n', '--dryrun', help="Don't add to database, just print records to be imported")
+        p.add_argument('arXiv-id', 'arXiv ID of the reference to be imported')
+        p.set_defaults(func=oai_import)
+
+        p = sps.add_parser('import-set', help='Import sets of references from OAI')
         p.add_argument('-C' ,'--chunksize', metavar='DAYS', type=int, help='Size of each query')
         p.add_argument('-u', '--url', default=arxiv.arxiv_oai_url, help='OAI query URL')
         p.add_argument('-s' ,'--start', metavar='DAYS', type=int,
                        help='Number of days ago to start downloading from')
         p.add_argument('-S', '--set', metavar='SET', type=str,
                        help='Set from which to import', default='physics:cond-mat')
-        p.set_defaults(func=oai_import)
+        p.add_argument('-n', '--dryrun', help="Don't add to database, just print records to be imported")
+        p.set_defaults(func=oai_import_set)
 
         args = parser.parse_args()
         args.func(args)

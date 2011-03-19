@@ -1,0 +1,8 @@
+#!/usr/bin/python-2.7
+
+from crossref import lookup_doi
+
+if __name__ == '__main__':
+        import argparse
+        sps = parser.add_subparsers(help='Sub-command help')
+        parser = argparse.ArgumentParser(description='Import refs from crossref')
