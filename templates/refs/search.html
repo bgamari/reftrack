@@ -1,29 +1,39 @@
 {% extends "base.html" %}
-{% load authorslist %}
-{% load format_tex %}
 {% load ref_url %}
-{% load tags %}
 
 {% block page_title %}[Ref Search]{% endblock %}
 
 {% block extra_head %}
 <style type='text/css'>
+        div#bulk-ops {
+                background-color: #eee;
+                padding: 0.5em;
+        }
         ul#results {
                 display: -webkit-box;
+                display: -moz-box;
                 -webkit-box-orient: vertical;
+                -moz-box-orient: vertical;
         }
         ul#results li.ref {
                 list-style-type: none;
                 padding: 1em 1em;
                 background-color: #eee;
                 border-radius: 1em;
+                display: -webkit-box;
+                display: -moz-box;
+                -webkit-box-orient: horizontal;
+                -moz-box-orient: horizontal;
         }
-        ul#results .thumb {
+        ul#results li.ref.selected {
+                background-color: #eef;
+        }
+        ul#results li.ref div {
+                padding: 0 1em;
+        }
+        ul#results li.ref .thumb {
                 min-width: 10em;
                 max-width: 10em;
-                min-height: 5em;
-                float: left;
-                padding: 0.1em 1em;
         }
         div.title {
                 font-weight: bold;
@@ -37,45 +47,106 @@
 <div>
         <form action="/refs/search" method="get">
           {% csrf_token %}
-          <input type="text" id="q" name="q" style="width: 40%;" value="{{ query|default:'' }}" />
+          <input type="search" id="query" name="q" style="width: 40%;" value="{{ query|default:'' }}" />
           <input type="submit" value="Search" />
         </form>
 </div>
 
-{% if refs and refs|length == 0 %}
-        <h1>No results found</h1>
-{% endif %}
-{% if refs and refs|length > 0 %}
-        <ul id="results">
-        {% if show_thumbs %}
-        <a href='/refs/search?q={{ query }}&show_thumbs=0'>Hide Thumbnails</a>
-        {% else %}
-        <a href='/refs/search?q={{ query }}&show_thumbs=1'>Show Thumbnails</a>
-        {% endif %}
+<script type='text/javascript'>
+        $('query').observe('input', function(event) {
+                if ($('query').value.length == 0) return;
+                new Ajax.Updater({success: 'results', failure: ''}, '/refs/search_results', {
+                        method: 'GET',
+                        parameters: { q: $('query').value },
+                        requestHeaders: ajax_headers
+                });
+        });
+</script>
 
-        {% for ref in refs %}
-        <li class="ref">
-                {% if show_thumbs %}
-                <span class='thumb'>
-                        {% if ref.documents.0 %}
-                        <a href="{{ ref|ref_url }}/show">
-                                <img class='thumb' src='/documents/{{ ref.documents.0 }}/page/0?format=png&width=300' />
-                        </a>
-                        {% endif %}
-                </span>
-                {% endif %}
+<script type='text/javascript'>
+        function bulkAddTag() {
+                var tag = $('bulk-tag-name').value;
+                var elems = {};
+                var refs = [];
+                $$('.ref.selected').each(function(el) {
+                        ref_id = el.readAttribute('data-refid');
+                        elems[ref_id] = el;
+                        refs.push(ref_id);
+                });
+                new Ajax.Request('/refs/bulk_tag/add', {
+                        onSuccess: function(response) {
+                                var res = JSON.parse(response.responseText);
+                                res.each(function(o) {
+                                        var el = elems[o];
+                                        var taglist = el.select('.tag-list')[0];
+                                        var new_tag = new Element('li', {
+                                                class: 'tag',
+                                                'data-name': tag
+                                        });
+                                        taglist.insertBefore(new_tag, taglist.lastChild);
+                                        setup_tag(taglist, new_tag);
+                                });
+                        },
+                        parameters: {
+                                tag: tag,
+                                refs: JSON.stringify(refs)
+                                },
+                        requestHeaders: ajax_headers,
+                });
+        }
+        function bulkRemoveTag() {
+                var tag = $('bulk-tag-name').value;
+                var elems = {};
+                var refs = [];
+                $$('.ref.selected').each(function(el) {
+                        ref_id = el.readAttribute('data-refid');
+                        elems[ref_id] = el;
+                        refs.push(ref_id);
+                });
+                new Ajax.Request('/refs/bulk_tag/remove', {
+                        onSuccess: function(response) {
+                                var res = JSON.parse(response.responseText);
+                                res.each(function(o) {
+                                        var el = elems[o];
+                                        var taglist = el.select('.tag-list')[0];
+                                        taglist.childElements().each(function(e) {
+                                                if (e.readAttribute('data-name') == tag)
+                                                        taglist.removeChild(e);
+                                        });
+                                });
+                        },
+                        parameters: {
+                                tag: $('bulk-tag-name').value,
+                                refs: JSON.stringify(refs),
+                                },
+                        requestHeaders: ajax_headers,
+                });
+        }
+</script>
+<div id='bulk-ops'>
+        Tag operations on selected Refs
+        <input id='bulk-tag-name' type='text' />
+        <input type='button' value='Add' onclick='bulkAddTag()' />
+        <input type='button' value='Remove' onclick='bulkRemoveTag()' />
+</div>
 
-                <div class="title"><a href="{{ ref|ref_url }}/show">{{ ref.title|format_tex }}</a></div>
-                <div class="byline">
-                        <span class='authors'>{{ ref.authors|format_authors:3 }}</span>.
-                        <span class='proper_title'>{{ ref.journal }}</span>{% if ref.volume %}. Vol. {{ref.volume}}, {% if ref.issue %}No. {{ref.issue }}.{% endif %}{% endif %}
-                </div>
-                {% if ref.pub_date %}<div>{{ ref.pub_date }}</div>{% endif %}
-                <div class='tags'>{{ ref|format_tags }}</div>
-                <blockquote class='abstract'>{{ ref.abstract }}</blockquote>
-        </li>
-        {% endfor %}
-        </ul>
-{% endif %}
+
+<ul id="results">
+        {% include "refs/search_results.html" %}
+</ul>
+
+<script type='text/javascript'>
+        $$('.ref').each(function(el) {
+                el.observe('click', selectRef);
+        });
+
+        function selectRef() {
+                console.log(this);
+                if (this.hasClassName('selected'))
+                        this.removeClassName('selected');
+                else
+                        this.addClassName('selected');
+        }
+</script>
 {% endblock %}
 

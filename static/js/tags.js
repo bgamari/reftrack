@@ -2,7 +2,7 @@ function setup_tag(taglist, tag) {
         var refid = taglist.readAttribute('data-refid');
         var name = tag.readAttribute('data-name');
 
-        var a = new Element('a', {'href': '/refs/search?q=tag:' + name});
+        var a = new Element('a', {'href': '/refs/search?q=tag:"' + name + '"'});
         a.update(name);
         tag.appendChild(a);
 
@@ -13,12 +13,14 @@ function setup_tag(taglist, tag) {
         tag.observe('mouseout', function() { e.style.display = 'none'; });
         e.observe('click', function() {
                         console.log('rm_tag ' + name);
-                        new Ajax.Request('/refs/' + refid + '/tags/remove?name=' + name, {
+                        new Ajax.Request('/refs/' + refid + '/tags/remove', {
                                 method: 'POST',
+                                requestHeaders: ajax_headers,
                                 onSuccess: function() {
                                         console.log('Removed');
                                         taglist.removeChild(tag);
-                                }
+                                },
+                                parameters: {'name': name}
                         });
         });
 }
@@ -48,6 +50,7 @@ function setup_taglist(taglist) {
         form.observe('submit', function(event) {
                 Event.stop(event);
                 form.request({
+                        requestHeaders: ajax_headers,
                         onFailure: function(transport) { console.log('Error adding tag'); },
                         onSuccess: function(transport) {
                                 input.value = '';

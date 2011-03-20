@@ -6,6 +6,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}css/page-viewer.css" />
+<script type='text/javascript' src='{{MEDIA_URL}}/js/inline-viewer.js'></script>
 {% endblock %}
 
 {% block content %}
@@ -14,5 +15,13 @@
         <span class='authors'>{{ ref.authors|format_authors }}</span>
         <div><a href="/refs/{{ ref|get_id }}/show">View Ref</a> | <a href="/documents/{{ doc|get_id }}">Download</a></div>
 {% include "documents/inline-viewer.html" %}
+
+<script type='text/javascript'>
+        doc_viewer = new DocViewer(false); // TODO fix history
+        doc_viewer.doc_id = '{{ doc|get_id }}';
+        doc_viewer.format = '{{format}}';
+        doc_viewer.n_pages = {{n_pages}};
+        doc_viewer.updatePage();
+</script>
 {% endblock %}
 

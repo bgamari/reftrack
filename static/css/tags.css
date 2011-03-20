@@ -1,6 +1,8 @@
 ul.tag-list {
         display: -webkit-box;
+        display: -moz-box;
         -webkit-box-orient: horizontal;
+        -moz-box-orient: horizontal;
         margin: 0;
 }
 
@@ -10,7 +12,9 @@ ul.tag-list li {
         background-color: #607090;
         border-radius: 5px;
         display: -webkit-box;
+        display: -moz-box;
         -webkit-box-orient: horizontal;
+        -moz-box-orient: horizontal;
 }
 
 ul.tag-list li a {
@@ -20,10 +24,6 @@ ul.tag-list li a {
 ul.tag-list li.add-tag {
         font-size: large;
         cursor: pointer;
-}
-
-ul.tag-list input {
-        border: 1px #e9e9e9;
 }
 
 ul.tag-list li span.remove-tag {
@@ -42,6 +42,8 @@ ul.tag-list li span.remove-tag:hover {
 
 ul.tag-list li form {
         display: -webkit-box;
+        display: -moz-box;
         -webkit-box-orient: horizontal;
+        -moz-box-orient: horizontal;
 }
 

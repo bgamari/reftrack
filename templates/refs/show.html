@@ -7,6 +7,9 @@
 {% block page_title %}[Ref] {{ ref.title }}{% endblock %}
 
 {% block extra_head %}
+<link rel='stylesheet' type='text/css' href='{{MEDIA_URL}}css/page-viewer.css' />
+<script type='text/javascript' src='{{MEDIA_URL}}/js/inline-viewer.js'></script>
+
 <style type='text/css'>
         ul.document-list {
                 display: -webkit-box;
@@ -29,6 +32,9 @@
         ul.document-list li:hover img {
                 opacity: 1.0;
         }
+        ul.document-list li.active {
+                background-color: #ddf;
+        }
 </style>
 {% endblock %}
 
@@ -43,14 +49,14 @@
         {% if ref.arxiv_id %}
         <div>
                 <b>arXiv:</b>
-                <a class='arxiv_id' href='http://www.arxiv.org/abs/{{ref.arxiv_id}}'>{{ ref.arxiv_id }}</a>
+                <a class='arxiv_id' target='_blank' href='http://www.arxiv.org/abs/{{ref.arxiv_id}}'>{{ ref.arxiv_id }}</a>
         </div>
         {% endif %}
 
         {% if ref.doi %}
         <div>
                 <b>DOI:</b>
-                <a class='doi' href='http://dx.doi.org/{{ref.doi}}'>{{ ref.doi }}</a>
+                <a class='doi' target='_blank' href='http://dx.doi.org/{{ref.doi}}'>{{ ref.doi }}</a>
         </div>
         {% endif %}
 
@@ -72,10 +78,10 @@
         <h2>Documents</h2>
         <ul class='document-list'>
         {% for doc in docs %}
-        <li>
+        <li id='doc-{{ doc.id }}'>
                 <div>{{ doc.filename }}</div>
                 <div>
-                        <a href='/documents/{{ doc.id }}/view/0?format=png'>
+                        <a href="javascript:view_doc('{{ doc.id }}')">
                                 <img src="/documents/{{ doc.id }}/page/0?format=png&width=200" />
                         </a>
                 </div>
@@ -88,5 +94,21 @@
         None ☹
         {% endfor %}
         </ul>
+
+        {% include "documents/inline-viewer.html" %}
+        <script type='text/javascript'>
+                $('doc-viewer').style.display = 'none';
+                doc_viewer = new DocViewer(false);
+                function view_doc(doc_id) {
+                        doc_viewer.setDocument(doc_id);
+                        doc_viewer.page_n = 0;
+                        doc_viewer.format = 'png';
+                        doc_viewer.n_pages = 0;
+                        doc_viewer.updatePage();
+                        $('doc-viewer').style.display = 'block';
+                        $$('ul.document-list li').each(function(el){ el.removeClassName('active') });
+                        $('doc-' + doc_id).addClassName('active');
+                }
+        </script>
 {% endblock %}
 

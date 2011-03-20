@@ -25,13 +25,13 @@ def format_accents(text):
 
 # Format math
 def format_math(text):
-        text = re.sub(r'([\d\w])_(\-?[^\s\-\(\)]+)[-\s]',
-                      lambda m: '%s<sub>%s</sub> ' % (cond_esc(m.group(1)), cond_esc(m.group(2))), text)
         text = re.sub(r'([\d\w])_\{(.+)\}',
                       lambda m: '%s<sub>%s</sub> ' % (cond_esc(m.group(1)), cond_esc(m.group(2))), text)
-        text = re.sub(r'([\d\w])\^(\-?[^\s\-]+)[-\s]',
-                      lambda m: '%s<sup>%s</sup> ' % (cond_esc(m.group(1)), cond_esc(m.group(2))), text)
+        text = re.sub(r'([\d\w])_(\-?[^\s\-\(\)]+)[-\s]',
+                      lambda m: '%s<sub>%s</sub> ' % (cond_esc(m.group(1)), cond_esc(m.group(2))), text)
         text = re.sub(r'([\d\w])\^\{(.+)\}',
+                      lambda m: '%s<sup>%s</sup> ' % (cond_esc(m.group(1)), cond_esc(m.group(2))), text)
+        text = re.sub(r'([\d\w])\^(\-?[^\s\-]+)[-\s]',
                       lambda m: '%s<sup>%s</sup> ' % (cond_esc(m.group(1)), cond_esc(m.group(2))), text)
         #text = re.sub(r'\$([^\$]+)\$', lambda m: '<i>%s</i>' % cond_esc(m.group(1)), text)
         text = re.sub(r'\$([^\$]+)\$', lambda m: '%s' % cond_esc(m.group(1)), text)

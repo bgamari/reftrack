@@ -1,6 +1,13 @@
 #!/usr/bin/python2.7
 
-import pymongo
+import database as db
+
+def update_documents():
+        for ref in db.refs.view('_all_docs'):
+                print ref
+                docs = db.docs.view('docs/by_ref', key=ref.id)
+                ref['documents'] = [d.id for d in docs]
+                print ref['documents']
 
 def merge_refs(p1, p2):
         d1 = dict([ (p['md5'], p) for p in p1 ])
@@ -15,25 +22,38 @@ def merge_refs(p1, p2):
 
         return res
 
-def find_ref(db, ref):
+def fulltext_query(query, limit=25, skip=0):
+        import json, urllib2
+        import urllib
+        url = '%sreftrack_refs/_fti/_design/fulltext/all?q=%s&limit=%d&skip=%d' % (db.search_server, urllib.quote(query), limit, skip)
+        try:
+                print url
+                f = urllib2.urlopen(url)
+                results = json.load(f)
+        except urllib2.HTTPError as e:
+                print 'Search request failed: %s' % e
+                raise e
+                return None
+
+        docs = [(db.Ref.load(db.refs, r['id']), r['score']) for r in results['rows']]
+        return docs, results['total_rows']
+
+def find_ref(ref):
         if 'arxiv_id' in ref:
-                d = db.refs.find_one({'arxiv_id': ref['arxiv_id']})
+                d = db.refs.get(ref['arxiv_id'])
                 if d: return d
 
-        d = db.refs.find_one({'authors': ref['authors'], 'title': ref['title']})
+        q = ['author:"%s"' % a['surname'] for a in ref['authors']]
+        q += ['title:"%s"' % w for w in ref['title'].split()]
+        d = run_query(' '.join(q))
+        #d = db.refs.find_one({'authors': ref['authors'], 'title': ref['title']})
         if d: return d
 
         return None
 
-ignore_words = 'a an the is are for when to from in at of'.split()
-def generate_keywords(ref):
-        kws = set()
-        kws.update(ref['title'].split(), (a['surname'] for a in ref['authors']))
-        kws = [kw.lower() for kw in kws
-                  if len(kw) > 3 and kws not in ignore_words]
-        return kws
-
-def refs_with_docs(db):
-        refids = [ doc.ref for doc in db.documents.find() ]
+def refs_with_docs():
+        refids = [ doc.ref for doc in db.docs.find() ]
         return db.refs.find({'_id': {'$in': refids}})
 
+import pprint
+#pprint.pprint(find_ref(db.docs, {'title': 'hidden', 'authors': {'surname': 'talaga'}))

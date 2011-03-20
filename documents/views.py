@@ -7,6 +7,7 @@ from django.http import HttpResponse, Http404
 from django.template import RequestContext
 import pymongo
 db = pymongo.Connection().reftrack
+from json_response import JSONResponse
 
 import pdf_render
 
@@ -18,6 +19,13 @@ def fetch(request, doc_id):
         resp.write(data)
         return resp
         
+def info(request, doc_id):
+        doc = db.documents.find_one({'_id': doc_id})
+        if doc is None: raise Http404
+        filename = os.path.abspath(doc['filename'])
+        n_pages = pdf_render.get_n_pages(filename)
+        return JSONResponse({'n_pages': n_pages})
+
 def render_page(request, doc_id, page_n):
         doc = db.documents.find_one({'_id': doc_id})
         if doc is None: raise Http404

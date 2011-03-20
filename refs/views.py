@@ -1,77 +1,75 @@
 from django.http import HttpResponse, Http404
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from json_response import JSONResponse
 import re
+import logging
+import json
 
-import pymongo
-db = pymongo.Connection().reftrack
+from index import fulltext_query
+import database as db
+
+results_per_page = 25
 
 def index(request):
         return HttpResponse('Hello world!')
 
 def search(request):
-        from itertools import chain
+        from math import ceil
         if 'q' not in request.GET:
                 return render_to_response('refs/search.html', {},
                                           context_instance=RequestContext(request))
 
         query = request.GET['q']
-        search = {}
-
-        # First look for unqualified terms (e.g. hello)
-        for m in re.finditer(r'(\s|\A)([^\s:"]+)(\s|\Z)', query):
-                search.setdefault('keywords', {'$all': []})['$all'].append(m.group(2).lower())
-
-        # Look for qualified terms (e.g. tag:"hello world")
-        qual_terms = re.finditer(r'(\w+):([^"\s]+)', query)
-        quoted_qual_terms = re.finditer(r'(\w+):"([^"]+)"', query)
-        for m in chain(qual_terms, quoted_qual_terms):
-                qual = m.group(1) # e.g. 'tag'
-                term = m.group(2) # e.g. 'hello world'
-                a = re.compile('^%s$' % term, re.I)
-
-                if qual == 'author':
-                        search.setdefault('authors.surname', {'$all': []})['$all'].append(a)
-
-                elif qual == 'title':
-                        search.setdefault('title', {'$all': []})['$all'].append(a)
-
-                elif qual == 'tag':
-                        search.setdefault('tags.name', {'$all': []})['$all'].append(term)
-
-                elif qual == 'with':
-                        if term in ['document', 'doc']:
-                                search['documents'] = {'$exists': True}
-
-        if search == {}:
-                return render_to_response('refs/search.html', {'query': query},
-                                          context_instance=RequestContext(request))
-
-        print search
-        results = list(db.refs.find(search, limit=1000))
-        for ref in results:
-                ref['document'] = db.documents.find_one({'ref': ref['_id']})
-
+        page = int(request.GET.get('page', 1))
+        skip = (page-1) * results_per_page
+        results, total_rows = fulltext_query(query, skip=skip, limit=results_per_page)
+        results = [res for res,score in results]
+        npages = ceil(1. * total_rows / results_per_page)
         show_thumbs = request.GET.get('show_thumbs', '0') != '0'
         return render_to_response('refs/search.html',
                                   {'refs': results,
+                                   'page': page,
+                                   'n_pages': npages,
+                                   'n_results': total_rows,
+                                   'pages': range(1, npages+1),
                                    'query': query,
                                    'show_thumbs': show_thumbs},
                                   context_instance=RequestContext(request))
 
+def search_results(request):
+        from math import ceil
+        query = request.GET['q']
+        page = int(request.GET.get('page', 1))
+        skip = (page-1) * results_per_page
+        results, total_rows = fulltext_query(query, skip=skip, limit=results_per_page)
+        results = [res for res,score in results]
+        npages = ceil(1. * total_rows / results_per_page)
+        show_thumbs = request.GET.get('show_thumbs', '0') != '0'
+        return render_to_response('refs/search_results.html',
+                                  {'refs': results,
+                                   'page': page,
+                                   'n_pages': npages,
+                                   'n_results': total_rows,
+                                   'pages': range(1, npages+1),
+                                   'query': query,
+                                   'show_thumbs': False},
+                                  context_instance=RequestContext(request))
+
 def show(request, ref_id):
         ref_id = ref_id.replace('_', '/')
-        ref = db.refs.find_one({'_id': ref_id})
+        ref = db.Ref.load(db.refs, ref_id)
         if ref is None: raise Http404
-        docs = db.documents.find({'ref': ref_id})
+        docs = db.docs.view('docs/by_ref', key=ref_id)
         return render_to_response('refs/show.html',
                                   {'ref': ref, 'docs': docs},
                                   context_instance=RequestContext(request))
 
 def add_tag(request, ref_id):
         ref_id = ref_id.replace('_', '/')
-        ref = db.refs.find_one({'_id': ref_id})
+        ref = db.refs.get(ref_id)
         if ref is None: raise Http404
+        if not request.POST: raise Http404
 
         name = request.POST.get('name').strip()
         if name == '' or name is None:
@@ -87,9 +85,11 @@ def add_tag(request, ref_id):
 
 def rm_tag(request, ref_id):
         ref_id = ref_id.replace('_', '/')
-        ref = db.refs.find_one({'_id': ref_id})
+        ref = db.refs.get(ref_id)
         if ref is None: raise Http404
+        if request.POST == None: raise Http404
 
+        print request.POST
         name = request.POST.get('name').strip()
         if name == '' or name is None:
                 return HttpResponse('Needs tag', status=500)
@@ -102,8 +102,49 @@ def rm_tag(request, ref_id):
         db.refs.save(ref)
         return HttpResponse(name)
 
-def tags_list(request):
-        tags = []
+def tag_list(request):
+        tags = dict((r.key, r.value) for r in db.refs.view('reftrack/all_tags', group=True))
         return render_to_response('refs/tags.html',
                                   {'tags': tags},
                                   context_instance=RequestContext(request))
+
+def bulk_add_tag(request):
+        if not request.POST:
+                return HttpResponse('Must be called with POST request', status=500)
+        refs = json.loads(request.POST['refs'])
+        tag = request.POST['tag']
+        if not tag:
+                return HttpResponse('Must be called with tag parameter', status=500)
+
+        succeeded = []
+        for ref_id in refs:
+                ref = db.refs.get(ref_id)
+                if ref and {'name': tag} not in ref['tags']:
+                        ref['tags'].append({'name': tag})
+                        succeeded.append(ref_id)
+                        db.refs.save(ref)
+                elif not ref:
+                        logging.warn('Ref %s not found' % ref_id)
+        
+        return JSONResponse(succeeded)
+
+def bulk_remove_tag(request):
+        if not request.POST:
+                return HttpResponse('Must be called with POST request', status=500)
+        refs = json.loads(request.POST['refs'])
+        tag = request.POST['tag']
+        if not tag:
+                return HttpResponse('Must be called with tag parameter', status=500)
+
+        succeeded = []
+        for ref_id in refs:
+                ref = db.refs.get(ref_id)
+                if ref and {'name': tag} in ref['tags']:
+                        ref['tags'].remove({'name': tag})
+                        succeeded.append(ref_id)
+                        db.refs.save(ref)
+                elif not ref:
+                        logging.warn('Ref %s not found' % ref_id)
+        
+        return JSONResponse(succeeded)
+

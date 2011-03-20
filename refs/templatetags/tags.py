@@ -10,6 +10,7 @@ def format_tag(ref, tag):
 
 @register.filter
 def format_tags(ref):
+        print ref
         s = '<ul class="tag-list" data-refid="%s">' % ref['_id'].replace('/', '_')
         s += ' '.join(format_tag(ref, tag) for tag in ref.get('tags', []))
         s += '</ul>'

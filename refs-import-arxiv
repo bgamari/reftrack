@@ -46,6 +46,7 @@ def oai_import_set(args, wait=30):
                                 new += 1
                                 d = {}
                         d.update(ref)
+                        d['tags'] = [{'name': c} for c in d['arxiv_categories']]
                         d['_id'] = 'arxiv:%s' % d['arxiv_id']
                         if args.get('dryrun', False):
                                 print d

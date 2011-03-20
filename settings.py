@@ -52,7 +52,6 @@ ADMIN_MEDIA_PREFIX = '/media/'
 SECRET_KEY = '#i%te&spatk=dxk+vb7_)*lhbj6uzb#y178fv3)tkrwry&t^gq'
 
 AUTHENTICATION_BACKENDS = (
-        'mongoengine.django.auth.MongoEngineBackend',
 )
 
 # List of callables that know how to import templates from various sources.

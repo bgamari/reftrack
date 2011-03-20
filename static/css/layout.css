@@ -3,58 +3,32 @@ body, html {
         margin: 0;
         padding: 0;
 }
-
 div#page-head {
         background-color: #203060;
         color: #fff;
 }
-
-div.nav a {
+div#page-head h1 {
+        padding: 0.5em;
+        font-size: large;
+}
+div#page-head div.nav {
+}
+div#page-head div.nav a {
         display: inline-block;
         padding: 0.5em 1em;
         margin: 0 1em;
         background-color: #6070a0;
         color: #eee;
+        border-radius: 5px 0px;
 }
 
-div.nav a:hover {
+div#page-head div.nav a:hover {
         color: #fff;
 }
-
 div#content {
         background-color: #fff;
         height: 100%;
         margin: 0 auto;
         padding: 0 1.2em 1.2em 1.2em;
-}
-
-h1 {
-        font-size: x-large;
-        font-weight: bold;
-        margin: 0;
-        padding: 1em 0;
-}
-
-h2 {
-        font-size: large;
-        font-weight: bold;
-        margin: 0;
-        padding: 0.5em 0;
-}
-
-blockquote {
-        line-height: 1.8em;
-        margin-top: 0;
-        margin-bottom: 1em;
-}
-
-ul {
-        padding-left: 1.5em;
-}
-
-ul li {
-        list-style-type: disc;
-        margin-left: 1.5em;
-        margin-top: 0.4em;
 }
 
