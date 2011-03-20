@@ -1,0 +1,54 @@
+{% load tags %}
+{% load authorslist %}
+{% load format_tex %}
+{% load ref_url %}
+
+<div id="pages">
+        {{n_results}} Refs found.  Pages:
+        {% if page == 1 %}↤ ←{% else %}
+        <a href='/refs/search?q={{query}}&page=1'>↤</a>
+        <a href='/refs/search?q={{query}}&page={{page|add:"-1"}}' accesskey='p'>←</a>
+        {% endif %}
+        {% for i in pages %}
+                {% if i == page %}
+                {{i}}
+                {% else %}
+                <a href='/refs/search?q={{query}}&page={{i}}'>{{i}}</a>
+                {% endif %}
+        {% endfor %}
+        {% if page == n_pages %}→ ↦{% else %}
+        <a href='/refs/search?q={{query}}&page={{page|add:"1"}}' accesskey='n'>→</a>
+        <a href='/refs/search?q={{query}}&page={{n_pages}}'>↦</a>
+        {% endif %}
+</div>
+
+{% if show_thumbs %}
+<a href='/refs/search?q={{ query }}&show_thumbs=0'>Hide Thumbnails</a>
+{% else %}
+<a href='/refs/search?q={{ query }}&show_thumbs=1'>Show Thumbnails</a>
+{% endif %}
+
+{% for ref in refs %}
+<li class="ref" data-refid='{{ ref.id }}'>
+        {% if show_thumbs %}
+        <div class='thumb'>
+                {% if ref.documents.0 %}
+                <a href="{{ ref|ref_url }}/show">
+                        <img class='thumb' src='/documents/{{ ref.documents.0 }}/page/0?format=png&width=300' />
+                </a>
+                {% endif %}
+        </div>
+        {% endif %}
+        
+        <div style='-webkit-box-flex: 1; -moz-box-flex: 1;'>
+                <div class="title"><a href="{{ ref|ref_url }}/show">{{ ref.title|format_tex }}</a></div>
+                <div class="byline">
+                        <span class='authors'>{{ ref.authors|format_authors:3 }}</span>.
+                        <span class='proper_title'>{{ ref.journal }}</span>{% if ref.volume %}. Vol. {{ref.volume}}, {% if ref.issue %}No. {{ref.issue }}{% endif %}{% endif %}{% if ref.year %} ({{ref.year}}){% endif %}.
+
+                </div>
+                <div class='tags'>{{ ref|format_tags }}</div>
+                <blockquote class='abstract'>{{ ref.abstract }}</blockquote>
+        </div>
+</li>
+{% endfor %}
