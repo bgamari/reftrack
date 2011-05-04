@@ -48,6 +48,8 @@ def oai_request(baseurl, **args):
         logging.debug('OAI request to %s took %f seconds, length %d kB' % (baseurl, time()-t, len(d)/1024))
         et = ElementTree.fromstring(d)
         err = et.find('oai:error', namespaces=prefixes)
+        if err is not None and err.attrib['code'] != 'noRecordsMatch':
+                return []
         if err is not None:
                 logging.error('OAI request failed: %s' % err.text)
                 raise OAIError(err.attrib['code'], err.text)
