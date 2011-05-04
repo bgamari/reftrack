@@ -47,8 +47,14 @@ def scrape_pdf(fname):
         return metad
 
 import traceback
-files = sys.argv[1:]
-for f in files:
+import argparse
+
+parser = argparse.ArgumentParser(description='Import papers')
+parser.add_argument('files', metavar='FILE', nargs='+', type=str,
+                    help='File to import')
+args = parser.parse_args()
+
+for f in args.files:
         h = hashlib.md5()
         h.update(open(f).read())
         md5 = h.hexdigest()
