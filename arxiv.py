@@ -48,8 +48,6 @@ def oai_request(baseurl, **args):
         logging.debug('OAI request to %s took %f seconds, length %d kB' % (baseurl, time()-t, len(d)/1024))
         et = ElementTree.fromstring(d)
         err = et.find('oai:error', namespaces=prefixes)
-        if err is not None and err.attrib['code'] != 'noRecordsMatch':
-                return []
         if err is not None:
                 logging.error('OAI request failed: %s' % err.text)
                 raise OAIError(err.attrib['code'], err.text)
@@ -97,7 +95,15 @@ def list_records(oai_url, _from=None, _until=None, _set=None):
         if _until: query['until'] = _until.isoformat()
         if _set: query['set'] = _set
 
-        et = oai_request(oai_url, **query)
+        et = None
+        try:
+                et = oai_request(oai_url, **query)
+        except OAIError as e:
+                if e.code == 'noRecordsMatch':
+                        return [], None
+                else:
+                        raise e
+
         resumption_token = et.find('oai:ListRecords/oai:resumptionToken', namespaces=prefixes)
         if resumption_token is not None:
                 logging.debug('Got resumption token %s' % resumption_token)
@@ -108,7 +114,15 @@ def list_records(oai_url, _from=None, _until=None, _set=None):
 def resume_list_records(oai_url, resumption_token):
         query = {'verb': 'ListRecords',
                  'resumptionToken': resumption_token}
-        et = oai_request(oai_url, **query)
+        et = None
+        try:
+                et = oai_request(oai_url, **query)
+        except OAIError as e:
+                if e.code == 'noRecordsMatch':
+                        return [], None
+                else:
+                        raise e
+
         resumption_token = et.find('oai:ListRecords/oai:resumptionToken', namespaces=prefixes)
         ets = et.findall('oai:ListRecords/oai:record', namespaces=prefixes)
         records = map(parse_arxiv_record, ets)
