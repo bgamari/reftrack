@@ -71,14 +71,21 @@ for f in args.files:
                 logging.warn('Insufficient metadata for %s' % f)
                 continue
 
-        dbref = index.find_ref(ref)
+        try:
+                dbref = index.find_ref(ref)
+        except Exception as e:
+                logging.warn('Error processing %s: %s' % (f, e))
+                logging.debug(traceback.format_exc())
+                continue
+
         refid = None
         if dbref is None:
-                refid = db.refs.save(ref)
+                ref = db.Ref(**ref).store(db.refs)
+                refid = ref.id
         else:
                 refid = dbref['_id']
 
-        file = db.documents.get(md5)
+        file = db.docs.get(md5)
         if file is None:
                 file = {
                         '_id': md5,
@@ -88,7 +95,7 @@ for f in args.files:
                 }
                 db.docs.save(file)
         elif file['ref'] != refid:
-                logging.warn('%s (md5=%s): existing file %s in database already already assigned to ref %s' %
+                logging.info('%s (md5=%s): existing file %s in database already already assigned to ref %s' %
                              (f, md5, file['filename'], ref['_id']))
         else:
                 logging.info('%s (md5=%s): File already associated with ref %s' %
