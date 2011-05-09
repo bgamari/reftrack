@@ -25,9 +25,11 @@ def merge_refs(p1, p2):
 def fulltext_query(query, limit=25, skip=0):
         import json, urllib2
         import urllib
-        url = '%sreftrack_refs/_fti/_design/fulltext/all?q=%s&limit=%d&skip=%d' % (db.search_server, urllib.quote(query), limit, skip)
+        url = '%sreftrack_refs/_fti/_design/fulltext/all?q=%s&limit=%d&skip=%d' % \
+                        (db.search_server,
+                         urllib.quote(query.encode('utf-8')),
+                         limit, skip)
         try:
-                print url
                 f = urllib2.urlopen(url)
                 results = json.load(f)
         except urllib2.HTTPError as e:
