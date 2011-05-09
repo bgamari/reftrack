@@ -45,12 +45,12 @@ def find_ref(ref):
                 d = db.refs.get(ref['arxiv_id'])
                 if d: return d
 
+        clean_title = filter(str.isalpha, ref['title'].split())
         q = ['author:"%s"' % a['surname'] for a in ref['authors']]
-        q += ['title:"%s"' % w for w in ref['title'].split()]
-        d = run_query(' '.join(q))
+        q += ['title:"%s"' % a for a in clean_title]
+        docs, rows = fulltext_query(' '.join(q))
         #d = db.refs.find_one({'authors': ref['authors'], 'title': ref['title']})
-        if d: return d
-
+        if rows > 0: return docs[0][0]
         return None
 
 def refs_with_docs():
