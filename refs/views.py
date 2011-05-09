@@ -125,6 +125,8 @@ def bulk_add_tag(request):
                         db.refs.save(ref)
                 elif not ref:
                         logging.warn('Ref %s not found' % ref_id)
+                else:
+                        logging.info('Ref %s already tagged with %s' % (ref_id, tag))
         
         return JSONResponse(succeeded)
 
@@ -145,6 +147,27 @@ def bulk_remove_tag(request):
                         db.refs.save(ref)
                 elif not ref:
                         logging.warn('Ref %s not found' % ref_id)
+                else:
+                        logging.info('Ref %s not tagged with %s' % (ref_id, tag))
         
         return JSONResponse(succeeded)
+
+def tag_search(query):
+        import json, urllib2
+        import urllib
+        url = '%sreftrack_refs/_fti/_design/fulltext/tags?q=%s' % (db.search_server, urllib.quote(query))
+        try:
+                print url
+                f = urllib2.urlopen(url)
+                results = json.load(f)
+        except urllib2.HTTPError as e:
+                print 'Search request failed: %s' % e
+                raise e
+                return None
+
+        docs = [(db.Ref.load(db.refs, r['id']), r['score']) for r in results['rows']]
+        return docs, results['total_rows']
+
+def tag_suggestions(request):
+        query = request.GET['q']
 

@@ -1,10 +1,9 @@
-function registerHotKey(key, f) {
+Element.prototype.registerHotkey = function(key, f) {
         var keycode = null;
         if (key.keycode) keycode = key.keycode;
         if (key.letter) keycode = key.letter.toUpperCase().charCodeAt(0);
         if (keycode == null) console.log('uh oh');
         document.observe('keydown', function(event) {
-                console.log(event);
                 if (event.keyCode == keycode) f();
         });
 }
@@ -31,12 +30,12 @@ function DocViewer(historyState) {
         $('next-page').observe('click', function(){ dv.nextPage(); });
         $('page-num').observe('change', function(){ Number(dv.setPage($('page-num').value)); });
 
-        registerHotKey({keycode: 189}, function(){ dv.zoomOut(); }); // key: -
-        registerHotKey({keycode: 187}, function(){ dv.zoomIn(); }); // key: +
-        registerHotKey({letter: 'n'}, function(){ dv.nextPage(); });
-        registerHotKey({letter: 'j'}, function(){ dv.nextPage(); });
-        registerHotKey({letter: 'p'}, function(){ dv.prevPage(); });
-        registerHotKey({letter: 'k'}, function(){ dv.prevPage(); });
+        $('doc-viewer').registerHotkey({keycode: 189}, function(){ dv.zoomOut(); }); // key: -
+        $('doc-viewer').registerHotkey({keycode: 187}, function(){ dv.zoomIn(); }); // key: +
+        $('doc-viewer').registerHotkey({letter: 'n'}, function(){ dv.nextPage(); });
+        $('doc-viewer').registerHotkey({letter: 'j'}, function(){ dv.nextPage(); });
+        $('doc-viewer').registerHotkey({letter: 'p'}, function(){ dv.prevPage(); });
+        $('doc-viewer').registerHotkey({letter: 'k'}, function(){ dv.prevPage(); });
 }
 
 DocViewer.prototype.setDocument = function(doc_id) {

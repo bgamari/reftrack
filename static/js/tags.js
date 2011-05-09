@@ -29,24 +29,42 @@ function setup_taglist(taglist) {
         var refid = taglist.readAttribute('data-refid')
         Element.select(taglist, 'li').each(function(tag) { setup_tag(taglist, tag); });
 
-        var li = new Element('li', {'class': "add-tag"})
-        var submit = new Element('input', {
-                        'name': 'add-tag-submit',
-                        'type': 'submit',
-                        'value': '+'
-        });
-        var input = new Element('input', {
-                        'name': 'name',
-                        'type': 'text',
-                        'autocomplete': 'off'
-        });
+        var li = new Element('li', {'class': "add-tag"});
+        taglist.appendChild(li);
+
         var form = new Element('form', {
-                        'id': 'add-tag-form',
-                        'action': '/refs/' + refid + '/tags/add',
-                        'method': 'POST',
+                id: 'add-tag-form',
+                action: '/refs/' + refid + '/tags/add',
+                method: 'POST',
+        });
+        li.appendChild(form)
+
+        var input = new Element('input', {
+                name: 'name',
+                type: 'text',
+                autocomplete: 'off'
         });
         form.appendChild(input);
+
+        var submit = new Element('input', {
+                name: 'add-tag-submit',
+                type: 'submit',
+                value: '+'
+        });
         form.appendChild(submit);
+
+        var sug = new Element('ul', {
+                id: 'suggestions',
+                class: 'autocomplete',
+        });
+
+        input.observe('input', function(event) {
+                new Ajax.Updater('suggestions', '/refs/tag_suggestions', {
+                        parameters: { q: input.value },
+                        requestHeaders: ajax_headers
+                });
+        });
+
         form.observe('submit', function(event) {
                 Event.stop(event);
                 form.request({
@@ -61,9 +79,6 @@ function setup_taglist(taglist) {
                         }
                 });
         });
-
-        li.appendChild(form)
-        taglist.appendChild(li);
 }
 
 document.observe('dom:loaded', function() {
