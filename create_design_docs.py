@@ -17,6 +17,7 @@ refs_designs = [
         {
                 '_id': '_design/fulltext',
                 'fulltext': {
+                        # For Ref search queries
                         'all': {'index': """
 function(doc) {
         var ret = new Document();
@@ -37,7 +38,18 @@ function(doc) {
         return ret;
 }
                                 """
-                        }
+                        },
+
+                        # For tag name suggestions
+                        'tags': {'index': """
+function(doc) {
+        var ret = new Document();
+        if ('tags' in doc)
+                for (var t in doc.tags) ret.add(doc.tags[t].name, {field: 'tag'});
+        return ret;
+}
+                                """
+                        },
                 }
         },
 ]
