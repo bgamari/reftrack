@@ -25,7 +25,7 @@ def search(request):
         skip = (page-1) * results_per_page
         results, total_rows = fulltext_query(query, skip=skip, limit=results_per_page)
         results = [res for res,score in results]
-        npages = ceil(1. * total_rows / results_per_page)
+        npages = int(ceil(1. * total_rows / results_per_page))
         show_thumbs = request.GET.get('show_thumbs', '0') != '0'
         return render_to_response('refs/search.html',
                                   {'refs': results,
@@ -58,7 +58,7 @@ def search_results(request):
 
 def show(request, ref_id):
         ref_id = ref_id.replace('_', '/')
-        ref = db.Ref.load(db.refs, ref_id)
+        ref = db.refs.get(ref_id)
         if ref is None: raise Http404
         docs = db.docs.view('docs/by_ref', key=ref_id)
         return render_to_response('refs/show.html',
