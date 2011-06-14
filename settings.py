@@ -85,5 +85,5 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 )
 
-SESSION_ENGINE = 'mongoengine.django.sessions'
+#SESSION_ENGINE = 'mongoengine.django.sessions'
 
