@@ -60,6 +60,9 @@ def parse_date(str):
 def parse_arxiv_record(et):
         md = {}
         m = et.find('oai:metadata/arxiv:arXiv', namespaces=prefixes)
+        pub_date = parse_date(m.findtext('arxiv:created', namespaces=prefixes))
+        md['pub_date'] = pub_date.strftime('%Y-%m-%d')
+        md['year'] = pub_date.year
         md['authors'] = [
                 {'forenames': a.findtext('arxiv:forenames', namespaces=prefixes),
                  'surname': a.findtext('arxiv:keyname', namespaces=prefixes)}
@@ -69,8 +72,6 @@ def parse_arxiv_record(et):
         md['abstract'] = m.findtext('arxiv:abstract', namespaces=prefixes).replace('\n', ' ').strip()
         md['arxiv_categories'] = m.findtext('arxiv:categories', namespaces=prefixes).split()
         md['arxiv_id'] = m.findtext('arxiv:id', namespaces=prefixes)
-        md['pub_date'] = parse_date(m.findtext('arxiv:created', namespaces=prefixes))
-        md['year'] = md['pub_date'].year
         md['type'] = 'journal_article'
         md['arxiv_journal_ref'] = m.findtext('arxiv:journal-ref', namespaces=prefixes)
         return md
