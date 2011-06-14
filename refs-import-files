@@ -80,7 +80,7 @@ for f in args.files:
 
         refid = None
         if dbref is None:
-                ref = db.Ref(**ref).store(db.refs)
+                ref = db.refs.save(ref)
                 refid = ref.id
         else:
                 refid = dbref['_id']

@@ -37,7 +37,7 @@ def fulltext_query(query, limit=25, skip=0):
                 raise e
                 return None
 
-        docs = [(db.Ref.load(db.refs, r['id']), r['score']) for r in results['rows']]
+        docs = [(db.refs.get(r['id']), r['score']) for r in results['rows']]
         return docs, results['total_rows']
 
 def find_ref(ref):

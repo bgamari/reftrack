@@ -54,10 +54,9 @@ def oai_import_set(args, wait=30, tag=[]):
                                 logging.debug(traceback.format_exc())
                                 continue
 
-                        print d
                         if d is None:
                                 new += 1
-                                d = db.Ref()
+                                d = {}
                         d.update(ref)
                         d['_id'] = 'arxiv:%s' % d['arxiv_id']
                         d['tags'] = [{'name': c} for c in d['arxiv_categories']]
@@ -68,7 +67,7 @@ def oai_import_set(args, wait=30, tag=[]):
                                 print d
                         else:
                                 try:
-                                        d.store(db.refs)
+                                        db.refs.save(d)
                                 except Exception as e:
                                         logging.warn('Error storing %s: %s' % (d, e))
                                         logging.debug(traceback.format_exc())
