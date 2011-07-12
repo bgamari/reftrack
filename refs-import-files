@@ -4,6 +4,7 @@ import sys
 import logging
 import hashlib
 import database as db
+import traceback
 
 import index
 import pdfscrape
@@ -13,11 +14,11 @@ import crossref
 logging.basicConfig(level=logging.DEBUG)
 
 total = 0
-unidentified = 0
+unidentified = []
 
 def scrape_pdf(fname):
         global total, unidentified
-        metad = pdfscrape.find_ids(f)
+        metad = pdfscrape.find_ids(fname)
         doi = metad.get('doi')
         arxiv_id = metad.get('arxiv_id')
 
@@ -40,21 +41,14 @@ def scrape_pdf(fname):
                         logging.info('Failed to get arXiv metadata for %s' % f)
 
         else:
-                unidentified += 1
+                unidentified.append(fname)
                 logging.info('Could not identify %s' % f)
 
         total += 1
         return metad
 
-import traceback
-import argparse
-
-parser = argparse.ArgumentParser(description='Import papers')
-parser.add_argument('files', metavar='FILE', nargs='+', type=str,
-                    help='File to import')
-args = parser.parse_args()
-
-for f in args.files:
+def process_file(f):
+        logging.info('Processing file %s' % f)
         h = hashlib.md5()
         h.update(open(f).read())
         md5 = h.hexdigest()
@@ -65,18 +59,18 @@ for f in args.files:
         except Exception as e:
                 logging.warn('Error processing %s: %s' % (f, e))
                 logging.debug(traceback.format_exc())
-                continue
+                return
 
         if 'title' not in ref or 'authors' not in ref:
                 logging.warn('Insufficient metadata for %s' % f)
-                continue
+                return
 
         try:
                 dbref = index.find_ref(ref)
         except Exception as e:
                 logging.warn('Error processing %s: %s' % (f, e))
                 logging.debug(traceback.format_exc())
-                continue
+                return
 
         refid = None
         if dbref is None:
@@ -101,7 +95,25 @@ for f in args.files:
                 logging.info('%s (md5=%s): File already associated with ref %s' %
                              (f, md5, refid))
 
-if total > 0:
-        logging.info('Processed %d files, %d unidentified (identified %3.1f%%)' %
-                     (total, unidentified, 100.*(total-unidentified)/total))
+if __name__ == '__main__':
+        import os
+        import argparse
+
+        parser = argparse.ArgumentParser(description='Import papers')
+        parser.add_argument('paths', metavar='FILE_OR_DIR', nargs='+', type=str,
+                            help='Paths to import')
+        args = parser.parse_args()
+
+        for p in args.paths:
+                if os.path.isdir(p):
+                        for (dirpath, dirnames, filenames) in os.walk(p):
+                                for f in filenames: process_file(os.path.join(dirpath,f))
+                elif os.path.isfile(p):
+                        process_file(p)
+        if total > 0:
+                logging.info('Processed %d files, %d unidentified (identified %3.1f%%)' %
+                             (total, len(unidentified), 100.*(total-len(unidentified))/total))
+
+        with open('undentified.txt', 'w') as f:
+                f.write('\n'.join(unidentified))
 
