@@ -5,14 +5,13 @@ import os.path
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, Http404
 from django.template import RequestContext
-import pymongo
-db = pymongo.Connection().reftrack
 from json_response import JSONResponse
+import database as db
 
 import pdf_render
 
 def fetch(request, doc_id):
-        doc = db.documents.find_one({'_id': doc_id})
+        doc = db.docs.get(doc_id)
         if doc is None: raise Http404
         resp = HttpResponse(mimetype='application/pdf')
         data = open(doc['filename']).read()
@@ -20,14 +19,14 @@ def fetch(request, doc_id):
         return resp
         
 def info(request, doc_id):
-        doc = db.documents.find_one({'_id': doc_id})
+        doc = db.docs.get(doc_id)
         if doc is None: raise Http404
         filename = os.path.abspath(doc['filename'])
         n_pages = pdf_render.get_n_pages(filename)
         return JSONResponse({'n_pages': n_pages})
 
 def render_page(request, doc_id, page_n):
-        doc = db.documents.find_one({'_id': doc_id})
+        doc = db.docs.get(doc_id)
         if doc is None: raise Http404
         format = request.GET.get('format', 'svg')
         if format not in ['svg', 'png']:
@@ -56,9 +55,9 @@ def render_page(request, doc_id, page_n):
                 raise RuntimeError('Unknown format')
 
 def view(request, doc_id, page_n=1):
-        doc = db.documents.find_one({'_id': doc_id})
+        doc = db.docs.get(doc_id)
         if doc is None: raise Http404
-        ref = db.refs.find_one({'_id': doc['ref']})
+        ref = db.refs.get(doc['ref'])
         filename = os.path.abspath(doc['filename'])
         n_pages = pdf_render.get_n_pages(filename)
 
