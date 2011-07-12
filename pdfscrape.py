@@ -11,8 +11,7 @@ arxiv_re = re.compile(r'arXiv:(\d{4,4}\.\d{4,4})(v\d+)?')
 
 def find_ids(file):
         metadata = {}
-        p = subprocess.Popen(['pdftotext', file, '-'], stdout=subprocess.PIPE)
-        txt = p.stdout.read()
+        txt = subprocess.check_output(['pdftotext', file, '-'])
 
         m = doi_re.search(txt)
         if m:
@@ -31,8 +30,10 @@ def flatten_text(el):
 def find_metadata(file):
         from xml.etree import ElementTree
         metadata = {}
-        p = subprocess.Popen(['pdftohtml', '-xml', '-stdout', file], stdout=subprocess.PIPE)
-        s = p.stdout.read()
+        s = subprocess.check_output(['pdftohtml', '-xml', '-stdout', file])
+        if len(s) == 0:
+                logging.warn('Failed to extract PDF content')
+                raise RuntimeError('Failed to extract PDF content')
         et = ElementTree.fromstring(s)
         first_page = et.find('page')
         page_h, page_w = first_page.attrib['height'], first_page.attrib['width']
