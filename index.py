@@ -45,7 +45,7 @@ def find_ref(ref):
                 d = db.refs.get(ref['arxiv_id'])
                 if d: return d
 
-        clean_title = filter(str.isalpha, ref['title'].split())
+        clean_title = filter(lambda s: s.isalpha(), ref['title'].split())
         q = ['author:"%s"' % a['surname'] for a in ref['authors']]
         q += ['title:"%s"' % a for a in clean_title]
         docs, rows = fulltext_query(' '.join(q))
