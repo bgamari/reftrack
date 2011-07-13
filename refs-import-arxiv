@@ -35,8 +35,8 @@ def oai_import_set(args, wait=30, tag=[]):
                 _from = date.today() - timedelta(days=day+args.chunksize)
                 logging.info('Starting chunk %d: %s to %s' %
                              (chunk_n,
-                              datetime.strftime(_from, '%Y-%m-%d'),
-                              datetime.strftime(_until, '%Y-%m-%d')))
+                              db.format_date(_from),
+                              db.format_date(_until)))
 
                 refs = arxiv.list_all_records(arxiv.arxiv_oai_url, wait=wait,
                                               _set=args.set,
