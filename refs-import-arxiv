@@ -60,6 +60,7 @@ def oai_import_set(args, wait=30, tag=[]):
                         d.update(ref)
                         d['_id'] = 'arxiv:%s' % d['arxiv_id']
                         d['tags'] = [{'name': c} for c in d['arxiv_categories']]
+                        d['date_imported'] = db.format_date(datetime.date.today())
                         for t in tag:
                                 d['tags'].append({'name': t})
 

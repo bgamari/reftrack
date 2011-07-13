@@ -3,6 +3,7 @@
 import sys
 import logging
 import hashlib
+import datetime
 import database as db
 import traceback
 
@@ -85,7 +86,8 @@ def process_file(f):
                         '_id': md5,
                         'md5': md5,
                         'ref': refid,
-                        'filename': f
+                        'filename': f,
+                        'date_imported': db.format_date(datetime.date.today()),
                 }
                 db.docs.save(file)
         elif file['ref'] != refid:
