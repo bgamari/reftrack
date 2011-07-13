@@ -75,8 +75,7 @@ def process_file(f):
 
         refid = None
         if dbref is None:
-                ref = db.refs.save(ref)
-                refid = ref.id
+                refid,_ = db.refs.save(ref)
         else:
                 refid = dbref['_id']
 
