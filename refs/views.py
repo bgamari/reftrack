@@ -14,46 +14,39 @@ results_per_page = 25
 def index(request):
         return HttpResponse('Hello world!')
 
-def search(request):
+def do_search(request):
         from math import ceil
+        query = request.GET['q']
+        page = int(request.GET.get('page', 1))
+        skip = (page-1) * results_per_page
+        results, total_rows = fulltext_query(query, skip=skip, limit=results_per_page)
+        results = [res for res,score in results]
+        for res in results:
+                docs = db.docs.view('docs/by_ref', key=res.id, limit=1)
+                if len(docs):
+                        res['document'] = docs.rows[0].id
+        npages = int(ceil(1. * total_rows / results_per_page))
+        show_thumbs = request.GET.get('show_thumbs', '0') != '0'
+        return {'refs': results,
+                'page': page,
+                'n_pages': npages,
+                'n_results': total_rows,
+                'pages': range(1, npages+1),
+                'query': query,
+                'show_thumbs': show_thumbs
+               }
+
+def search(request):
         if 'q' not in request.GET:
                 return render_to_response('refs/search.html', {},
                                           context_instance=RequestContext(request))
-
-        query = request.GET['q']
-        page = int(request.GET.get('page', 1))
-        skip = (page-1) * results_per_page
-        results, total_rows = fulltext_query(query, skip=skip, limit=results_per_page)
-        results = [res for res,score in results]
-        npages = int(ceil(1. * total_rows / results_per_page))
-        show_thumbs = request.GET.get('show_thumbs', '0') != '0'
         return render_to_response('refs/search.html',
-                                  {'refs': results,
-                                   'page': page,
-                                   'n_pages': npages,
-                                   'n_results': total_rows,
-                                   'pages': range(1, npages+1),
-                                   'query': query,
-                                   'show_thumbs': show_thumbs},
+                                  do_search(request),
                                   context_instance=RequestContext(request))
 
 def search_results(request):
-        from math import ceil
-        query = request.GET['q']
-        page = int(request.GET.get('page', 1))
-        skip = (page-1) * results_per_page
-        results, total_rows = fulltext_query(query, skip=skip, limit=results_per_page)
-        results = [res for res,score in results]
-        npages = ceil(1. * total_rows / results_per_page)
-        show_thumbs = request.GET.get('show_thumbs', '0') != '0'
         return render_to_response('refs/search_results.html',
-                                  {'refs': results,
-                                   'page': page,
-                                   'n_pages': npages,
-                                   'n_results': total_rows,
-                                   'pages': range(1, npages+1),
-                                   'query': query,
-                                   'show_thumbs': False},
+                                  do_search(request),
                                   context_instance=RequestContext(request))
 
 def show(request, ref_id):

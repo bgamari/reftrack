@@ -32,9 +32,9 @@
 <li class="ref" data-refid='{{ ref.id }}'>
         {% if show_thumbs %}
         <div class='thumb'>
-                {% if ref.documents.0 %}
+                {% if ref.document %}
                 <a href="{{ ref|ref_url }}/show">
-                        <img class='thumb' src='/documents/{{ ref.documents.0 }}/page/0?format=png&width=300' />
+                        <img class='thumb' src='/documents/{{ ref.document }}/page/0?format=png&width=300' />
                 </a>
                 {% endif %}
         </div>
