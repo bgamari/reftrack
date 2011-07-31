@@ -27,7 +27,7 @@ def scrape_pdf(fname):
                 logging.debug('DOI of %s is %s' % (f, doi))
                 m = crossref.lookup_doi(doi)
                 if m:
-                        metad['_id'] = 'doi:%s' % doi
+                        metad['_id'] = doi
                         metad.update(m)
                 else:
                         logging.info('Failed to get crossref metadata for %s' % f)
@@ -36,7 +36,7 @@ def scrape_pdf(fname):
                 logging.debug('arXiv ID of %s is %s' % (f, arxiv_id))
                 m = arxiv.lookup_arxiv(arxiv_id)
                 if m:
-                        metad['_id'] = 'arxiv:%s' % arxiv_id
+                        metad['_id'] = arxiv_id
                         metad.update(m)
                 else:
                         logging.info('Failed to get arXiv metadata for %s' % f)
