@@ -62,23 +62,23 @@ def process_file(f):
                 logging.debug(traceback.format_exc())
                 return
 
+        refid = None
         if 'title' not in ref or 'authors' not in ref:
                 logging.warn('Insufficient metadata for %s' % f)
-                return
-
-        try:
-                dbref = index.find_ref(ref)
-        except Exception as e:
-                logging.warn('Error processing %s: %s' % (f, e))
-                logging.debug(traceback.format_exc())
-                return
-
-        refid = None
-        if dbref is None:
-                print ref
-                refid,_ = db.refs.save(ref)
         else:
-                refid = dbref['_id']
+                try:
+                        dbref = index.find_ref(ref)
+                except Exception as e:
+                        logging.warn('Error processing %s: %s' % (f, e))
+                        logging.debug(traceback.format_exc())
+                        return
+
+                refid = None
+                if dbref is None:
+                        print ref
+                        refid,_ = db.refs.save(ref)
+                else:
+                        refid = dbref['_id']
 
         file = db.docs.get(md5)
         if file is None:
