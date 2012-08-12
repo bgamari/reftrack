@@ -1,3 +1,7 @@
+{-# LANGUAGE OverloadedStrings #-}
+
+import Data.Text (Text)
+import qualified Data.Text as T
 import Control.Monad
 import Data.Char (ord)
 import System.Environment
@@ -11,22 +15,29 @@ type Extractor = String -> Maybe ExternalRef
 filterBadness :: String -> String
 filterBadness = filter (\c->ord c < 255)
 
-standardDoi = fmap (\a->DOIRef $ DOI $ a !! 0) . listToMaybe . match re
+standardDoi :: String -> Maybe ExternalRef
+standardDoi = fmap f . listToMaybe . match re
   where re = makeRegexOpts compIgnoreCase defaultExecOpt
-             "10\\.[[:digit:]]\\{4\\}/[[:alnum:]+\\.]\\+"
+             ("10\\.[[:digit:]]\\{4\\}/[[:alnum:]+\\.]\\+" :: String)
+        f a = DOIRef $ DOI $ T.pack $ a !! 0
         
-pnasDoi = fmap (\a->DOIRef . DOI $ a !! 1) . listToMaybe . match re
-  where re = makeRegexOpts compIgnoreCase defaultExecOpt "doi/\\(10\\.1073/pnas\\.\\w\\+\\)"
+pnasDoi :: String -> Maybe ExternalRef
+pnasDoi = fmap (\a->DOIRef . DOI $ T.pack $ a !! 1) . listToMaybe . match re
+  where re = makeRegexOpts compIgnoreCase defaultExecOpt 
+             ("doi/\\(10\\.1073/pnas\\.\\w\\+\\)" :: String)
 
+lenientPnasDoi :: String -> Maybe ExternalRef
 lenientPnasDoi = fmap f . listToMaybe . match re
-  where re = makeRegexOpts compIgnoreCase defaultExecOpt "doi10\\.1073pnas\\.\\(\\w\\+\\)"
-        f a = DOIRef $ DOI $ "10.1073/pnas."++(a !! 1)
+  where re = makeRegexOpts compIgnoreCase defaultExecOpt 
+             ("doi10\\.1073pnas\\.\\(\\w\\+\\)" :: String)
+        f :: [String] -> ExternalRef
+        f a = DOIRef $ DOI $ "10.1073/pnas." `T.append` (T.pack $ a !! 1)
         
-oldArxivId = fmap (\a->ArxivRef $ ArxivId $ a !! 1) . listToMaybe . match re
-  where re = makeRegex "arXiv:([[:alpha:]-]+/[[:digit:]]+v[[:digit:]]+)" :: Regex
+oldArxivId = fmap (\a->ArxivRef $ ArxivId $ T.pack $ a !! 1) . listToMaybe . match re
+  where re = makeRegex ("arXiv:([[:alpha:]-]+/[[:digit:]]+v[[:digit:]]+)" :: String) :: Regex
         
-arxivId = fmap (\a->ArxivRef $ ArxivId $ a !! 1) . listToMaybe . match re
-  where re = makeRegex "arXiv:([[:digit:]]{4}\\.[[:digit:]]{4}v[[:digit:]]+)" :: Regex
+arxivId = fmap (\a->ArxivRef $ ArxivId $ T.pack $ a !! 1) . listToMaybe . match re
+  where re = makeRegex ("arXiv:([[:digit:]]{4}\\.[[:digit:]]{4}v[[:digit:]]+)" :: String) :: Regex
                                                              
 extractors :: [Extractor]
 extractors = [ standardDoi
@@ -71,5 +82,6 @@ tests = [ ("www.pnas.org/cgi/doi/10.1073/pnas.1018033108", "") -- PNAS
         , ("arXiv:1102.2934v1", "") -- New ArXiv
         , ("dx.doi.org/10.1021/jp1095344", "") -- J. Phys. Chem. A
         , ("[doi:10.1063/1.3598109]", "")
+        , ("doi:10.1166/jnn.2009.2020", "") -- J. Nanosci. and Nanotech.
         ]
 

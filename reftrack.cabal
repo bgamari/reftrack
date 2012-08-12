@@ -51,4 +51,11 @@ Executable pdf-scrape
                        regex-posix,
                        safecopy,
                        acid-state,
-                       ixset
+                       ixset,
+                       text,
+                       bytestring,
+                       containers,
+                       mtl,
+                       fclabels,
+                       hashable
+

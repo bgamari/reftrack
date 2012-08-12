@@ -1,75 +1,121 @@
-{-# LANGUAGE DeriveDataTypeable, TemplateHaskell #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving,
+             DeriveDataTypeable, TemplateHaskell, TypeFamilies #-}
 module RefTrack.Types where
 
-import Data.Typeable
-import Data.Time.Calendar
-import Data.Time.Clock
-import Data.IxSet
-import Data.SafeCopy
-import Data.Acid
+import           Control.Category                 
+import           Data.Acid
+import           Data.Function (on)
+import           Data.ByteString (ByteString)
+import           Data.Hashable
+import           Data.IxSet (IxSet, Indexable, ixSet, ixFun)
+import qualified Data.IxSet as IS
+import           Data.Label
+import           Data.Label.PureM as LM
+import           Data.Map (Map)
+import           Data.SafeCopy
+import           Data.Set (Set)
+import           Data.Text (Text)
+import           Data.Time.Calendar
+import           Data.Time.Clock
+import           Data.Typeable
+import           Prelude hiding ((.), id)
 
-newtype RefId  = RefId String deriving (Show, Ord, Eq, Typeable)
+newtype RefId  = RefId Text deriving (Show, Ord, Eq, Hashable, Typeable)
+$(deriveSafeCopy 0 'base ''RefId)
+
+newtype Tag = Tag Text deriving (Show, Ord, Eq, Hashable, Typeable)
+$(deriveSafeCopy 0 'base ''Tag)
+
 newtype Year = Year Int deriving (Show, Ord, Eq, Typeable)
-newtype Tag = Tag String deriving (Show, Ord, Eq, Typeable)
-$(deriveSafeCopy  0 'base ''RefId)
-$(deriveSafeCopy  0 'base ''Year)
-$(deriveSafeCopy  0 'base ''Tag)
+$(deriveSafeCopy 0 'base ''Year)
                         
-data Person = Person { pForenames :: String
-                     , pSurname :: String
+data Person = Person { _personForenames :: Text
+                     , _personSurname :: Text
                      }
             deriving (Show, Eq)
-$(deriveSafeCopy  0 'base ''Person)
+$(deriveSafeCopy 0 'base ''Person)
+$(mkLabels [''Person])
 
-data JournalIssue = JournalIssue { jiFullTitle :: String
-                                 , jiAbbrevTitle :: Maybe String
-                                 , jiVolume :: Int
-                                 , jiIssue :: String
-                                 }
-                  deriving (Show, Eq)
-$(deriveSafeCopy  0 'base ''JournalIssue)
+data Publication = JournalIssue { _pubFullTitle :: Text
+                                , _pubAbbrevTitle :: Maybe Text
+                                , _pubVolume :: Int
+                                , _pubIssue :: Text
+                                }
+                 | Proceedings { _pubFullTitle :: Text
+                               }
+                 | Book { _pubFullTitle :: Text
+                        }
+                 deriving (Show, Eq)
+$(deriveSafeCopy 0 'base ''Publication)
+$(mkLabels [''Publication])
 
-data RefType = Article | Book deriving (Show, Eq)
-$(deriveSafeCopy  0 'base ''RefType)
-                      
-newtype ArxivId = ArxivId String deriving (Show, Eq)
-$(deriveSafeCopy  0 'base ''ArxivId)
-newtype DOI = DOI String deriving (Show, Eq)
-$(deriveSafeCopy  0 'base ''DOI)
+newtype ArxivId = ArxivId Text deriving (Show, Eq)
+$(deriveSafeCopy 0 'base ''ArxivId)
+
+newtype DOI = DOI Text deriving (Show, Eq)
+
+$(deriveSafeCopy 0 'base ''DOI)
 data ExternalRef = ArxivRef ArxivId
                  | DOIRef DOI
                  deriving (Show, Eq)   
-$(deriveSafeCopy  0 'base ''ExternalRef)
+$(deriveSafeCopy 0 'base ''ExternalRef)
 
-data Ref = Ref {
-               -- * General
-                 rId :: RefId
-               , rTitle :: String
-               , rIssue :: JournalIssue
-               , rAuthors :: [Person]
-               , rPubDate :: Day
-               , rType :: RefType
-               , rYear :: Year
-               , rExternalRefs :: [ExternalRef]
+data Ref = Ref { -- * General
+                 _refId :: RefId
+               , _refTitle :: Text
+               , _refPublication :: Publication
+               , _refAuthors :: [Person]
+               , _refPubDate :: Maybe Day
+               , _refYear :: Year
+               , _refExternalRefs :: [ExternalRef]
+               , _refTags :: Set Tag
+               , _refAbstract :: Maybe Text
                }
          deriving (Show, Eq, Typeable)
-$(deriveSafeCopy  0 'base ''Ref)
+$(deriveSafeCopy 0 'base ''Ref)
+$(mkLabels [''Ref])
+instance Ord Ref where compare = compare `on` get refId
   
-newtype Author = Author String deriving (Show, Ord, Eq, Typeable)
+newtype Author = Author Text deriving (Show, Ord, Eq, Typeable)
+
 instance Indexable Ref where
-  empty = ixSet [ ixFun $ \ref->[rId ref]
-                , ixFun $ \ref->map (Author . pSurname) $ rAuthors ref
+  empty = ixSet [ ixFun $ \ref->[get refId ref]
+                , ixFun $ \ref->map (Author . get personSurname) $ get refAuthors ref
                 ]
   
-data Document = Document { dDateImported :: UTCTime
-                         , dFilename :: FilePath
-                         , dMD5sum :: String
-                         , dRef :: Ref
+data FileHash = SHAHash ByteString
+              deriving (Show, Ord, Eq, Typeable)
+$(deriveSafeCopy 0 'base ''FileHash)
+  
+data Document = Document { _docHash :: FileHash 
+                         , _docTitle :: Maybe Text
+                         , _docDateImported :: UTCTime
+                         , _docFilename :: FilePath
+                         , _docRef :: RefId
                          }
-              deriving (Show, Eq)
-$(deriveSafeCopy  0 'base ''Document)
-                                    
-data Repo = Repo [Document] [Tag]
-$(deriveSafeCopy  0 'base ''Repo)
+              deriving (Show, Eq, Typeable)
+$(deriveSafeCopy 0 'base ''Document)
+$(mkLabels [''Document])
 
--- $(makeAcidic ''Document ['addRef, 'update])
+instance Ord Document where compare = compare `on` get docHash
+instance Indexable Document where
+  empty = ixSet [ ixFun $ \doc->[get docRef doc]
+                , ixFun $ \doc->[get docHash doc]
+                ]
+
+data Repo = Repo { _repoRefs :: IxSet Ref
+                 , _repoDocuments :: IxSet Document
+                 , _repoTags :: Map Tag (Set RefId)
+                 }
+            deriving (Show, Eq, Typeable)
+$(deriveSafeCopy 0 'base ''Repo)
+$(mkLabels [''Repo])                 
+
+addRef :: Ref -> Update Repo ()
+addRef ref = LM.modify repoRefs (IS.insert ref)
+                  
+delRef :: Ref -> Update Repo ()
+delRef ref = LM.modify repoRefs (IS.delete ref)
+       
+$(makeAcidic ''Repo ['addRef, 'delRef])
+
