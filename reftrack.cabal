@@ -42,6 +42,36 @@ Build-type:          Simple
 -- Constraint on the version of Cabal needed to build this package.
 Cabal-version:       >=1.2
 
+Library
+  Exposed-Modules:     RefTrack.Types
+  Build-depends:       base,
+                       process,
+                       time,
+                       regex-posix,
+                       safecopy,
+                       acid-state,
+                       ixset,
+                       text,
+                       bytestring,
+                       containers,
+                       mtl,
+                       lens,
+                       hashable
+
+Executable reftrack-server
+  Main-is:             Server.hs
+  Build-depends:       base,
+                       safecopy,
+                       network,
+                       acid-state,
+                       ixset,
+                       text,
+                       bytestring,
+                       containers,
+                       mtl,
+                       lens,
+                       hashable
+
 
 Executable pdf-scrape
   Main-is:             PDFScrape.hs

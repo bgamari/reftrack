@@ -11,6 +11,7 @@ import           Data.IxSet (IxSet, Indexable, ixSet, ixFun)
 import qualified Data.IxSet as IS
 import           Control.Lens hiding (Indexable)
 import           Data.Map (Map)
+import qualified Data.Map as M
 import           Data.SafeCopy
 import           Data.Set (Set)
 import           Data.Text (Text)
@@ -109,6 +110,8 @@ data Repo = Repo { _repoRefs :: IxSet Ref
             deriving (Show, Eq, Typeable)
 $(deriveSafeCopy 0 'base ''Repo)
 $(makeLenses ''Repo)
+             
+emptyRepo = Repo IS.empty IS.empty M.empty
 
 addRef :: Ref -> Update Repo ()
 addRef ref = repoRefs %= IS.insert ref
