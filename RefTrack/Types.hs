@@ -9,8 +9,7 @@ import           Data.ByteString (ByteString)
 import           Data.Hashable
 import           Data.IxSet (IxSet, Indexable, ixSet, ixFun)
 import qualified Data.IxSet as IS
-import           Data.Label
-import           Data.Label.PureM as LM
+import           Control.Lens hiding (Indexable)
 import           Data.Map (Map)
 import           Data.SafeCopy
 import           Data.Set (Set)
@@ -34,7 +33,7 @@ data Person = Person { _personForenames :: Text
                      }
             deriving (Show, Eq)
 $(deriveSafeCopy 0 'base ''Person)
-$(mkLabels [''Person])
+$(makeLenses ''Person)
 
 data Publication = JournalIssue { _pubFullTitle :: Text
                                 , _pubAbbrevTitle :: Maybe Text
@@ -47,7 +46,7 @@ data Publication = JournalIssue { _pubFullTitle :: Text
                         }
                  deriving (Show, Eq)
 $(deriveSafeCopy 0 'base ''Publication)
-$(mkLabels [''Publication])
+$(makeLenses ''Publication)
 
 newtype ArxivId = ArxivId Text deriving (Show, Eq)
 $(deriveSafeCopy 0 'base ''ArxivId)
@@ -73,14 +72,14 @@ data Ref = Ref { -- * General
                }
          deriving (Show, Eq, Typeable)
 $(deriveSafeCopy 0 'base ''Ref)
-$(mkLabels [''Ref])
-instance Ord Ref where compare = compare `on` get refId
+$(makeLenses ''Ref)
+instance Ord Ref where compare = compare `on` view refId
   
 newtype Author = Author Text deriving (Show, Ord, Eq, Typeable)
 
 instance Indexable Ref where
-  empty = ixSet [ ixFun $ \ref->[get refId ref]
-                , ixFun $ \ref->map (Author . get personSurname) $ get refAuthors ref
+  empty = ixSet [ ixFun $ \ref->[view refId ref]
+                , ixFun $ \ref->map (Author . view personSurname) $ view refAuthors ref
                 ]
   
 data FileHash = SHAHash ByteString
@@ -95,12 +94,12 @@ data Document = Document { _docHash :: FileHash
                          }
               deriving (Show, Eq, Typeable)
 $(deriveSafeCopy 0 'base ''Document)
-$(mkLabels [''Document])
+$(makeLenses ''Document)
 
-instance Ord Document where compare = compare `on` get docHash
+instance Ord Document where compare = compare `on` view docHash
 instance Indexable Document where
-  empty = ixSet [ ixFun $ \doc->[get docRef doc]
-                , ixFun $ \doc->[get docHash doc]
+  empty = ixSet [ ixFun $ \doc->[view docRef doc]
+                , ixFun $ \doc->[view docHash doc]
                 ]
 
 data Repo = Repo { _repoRefs :: IxSet Ref
@@ -109,13 +108,13 @@ data Repo = Repo { _repoRefs :: IxSet Ref
                  }
             deriving (Show, Eq, Typeable)
 $(deriveSafeCopy 0 'base ''Repo)
-$(mkLabels [''Repo])                 
+$(makeLenses ''Repo)
 
 addRef :: Ref -> Update Repo ()
-addRef ref = LM.modify repoRefs (IS.insert ref)
+addRef ref = repoRefs %= IS.insert ref
                   
 delRef :: Ref -> Update Repo ()
-delRef ref = LM.modify repoRefs (IS.delete ref)
+delRef ref = repoRefs %= IS.delete ref
        
 $(makeAcidic ''Repo ['addRef, 'delRef])
 

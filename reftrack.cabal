@@ -56,6 +56,6 @@ Executable pdf-scrape
                        bytestring,
                        containers,
                        mtl,
-                       fclabels,
+                       lens,
                        hashable
 
