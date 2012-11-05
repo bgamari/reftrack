@@ -1,5 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving,
-             DeriveDataTypeable, TemplateHaskell, TypeFamilies #-}
+             DeriveDataTypeable, TemplateHaskell, TypeFamilies,
+             OverloadedStrings #-}
+
 module RefTrack.Types where
 
 import           Control.Category                 
@@ -15,6 +17,9 @@ import qualified Data.Map as M
 import           Data.SafeCopy
 import           Data.Set (Set)
 import           Data.Text (Text)
+import qualified Data.Text as T
+import           Data.Maybe (listToMaybe)
+import           Data.Char (isSpace)
 import           Data.Time.Calendar
 import           Data.Time.Clock
 import           Data.Typeable
@@ -54,6 +59,10 @@ newtype ArxivId = ArxivId Text deriving (Show, Eq)
 $(deriveSafeCopy 0 'base ''ArxivId)
 
 newtype DOI = DOI Text deriving (Show, Eq)
+mkDOI :: Text -> Maybe DOI
+mkDOI t = 
+    (DOI . T.takeWhile (not . isSpace))
+    `fmap` listToMaybe (filter (`T.isPrefixOf` "10.") $ T.tails t)
 
 $(deriveSafeCopy 0 'base ''DOI)
 data ExternalRef = ArxivRef ArxivId
