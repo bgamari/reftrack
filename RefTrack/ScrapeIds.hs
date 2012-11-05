@@ -6,12 +6,9 @@ module RefTrack.ScrapeIds ( Extractor
        
 import Data.Text (Text)
 import qualified Data.Text as T
-import Control.Monad
 import Data.Char (ord)
-import System.Environment
 import RefTrack.Types
 import Text.Regex.Posix
-import System.Process
 import Data.Maybe
 
 type Extractor = String -> Maybe ExternalRef
