@@ -4,7 +4,6 @@ module RefTrack.CrossRef where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
 
-import Debug.Trace       
 import           Control.Applicative
 import           Control.Error.Safe       
 import           Data.Maybe
@@ -22,7 +21,6 @@ import           RefTrack.Types hiding (Document)
 import           Text.XML
 import           Text.XML.Cursor
 
-tr x = traceShow x x
 userName = "bgamari@physics.umass.edu"
 passwd = "mudpie11"
 hostname = URIAuth { uriUserInfo = ""
@@ -58,7 +56,6 @@ lookupDoi (DOI doi) = do
     case resp of
       Response {rspCode=(2,_,_), rspBody=body} -> do
         doc <- liftEither show $ parseLBS def body
-        lift $ putStrLn $ LBS.unpack body
         let queries = fromDocument doc
                       $/ laxElement "query_result"
                       &/ laxElement "body"
