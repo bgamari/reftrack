@@ -81,7 +81,7 @@ Executable reftrack-server
                        lens,
                        hashable
 
-Executable pdf-scrape
+Executable reftrack-scrape
   Main-is:             PDFScrape.hs
   Build-depends:       base,
                        process,
