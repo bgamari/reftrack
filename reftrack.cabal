@@ -44,6 +44,10 @@ Cabal-version:       >=1.2
 
 Library
   Exposed-Modules:     RefTrack.Types
+                       RefTrack.ScrapeIds
+                       RefTrack.OAI
+                       RefTrack.OAI.Arxiv
+                       RefTrack.CrossRef
   Build-depends:       base,
                        process,
                        time,
@@ -56,7 +60,12 @@ Library
                        containers,
                        mtl,
                        lens,
-                       hashable
+                       hashable,
+                       xml-conduit,
+                       old-locale,
+                       HTTP,
+                       errors,
+                       transformers
 
 Executable reftrack-server
   Main-is:             Server.hs
@@ -72,7 +81,6 @@ Executable reftrack-server
                        lens,
                        hashable
 
-
 Executable pdf-scrape
   Main-is:             PDFScrape.hs
   Build-depends:       base,
@@ -87,5 +95,7 @@ Executable pdf-scrape
                        containers,
                        mtl,
                        lens,
-                       hashable
+                       hashable,
+                       xml-conduit,
+                       old-locale
 
