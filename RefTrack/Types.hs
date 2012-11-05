@@ -45,6 +45,7 @@ data Publication = JournalIssue { _pubFullTitle :: Text
                                }
                  | Book { _pubFullTitle :: Text
                         }
+                 | OtherPub {}
                  deriving (Show, Eq)
 $(deriveSafeCopy 0 'base ''Publication)
 $(makeLenses ''Publication)
