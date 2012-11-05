@@ -5,7 +5,7 @@ module RefTrack.CrossRef where
 import qualified Data.ByteString.Lazy.Char8 as LBS
 
 import           Control.Applicative
-import           Control.Error.Safe       
+import           Control.Error
 import           Data.Maybe
 import           Data.List
 import qualified Data.Set as S
@@ -13,7 +13,6 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import           Control.Monad
 import           Control.Monad.Trans.Class
-import           Control.Monad.Trans.Error
 import           Data.Functor.Identity
 import           Network.HTTP
 import           Network.URI
@@ -31,16 +30,7 @@ hostname = URIAuth { uriUserInfo = ""
 buildQuery :: [(String,String)] -> String
 buildQuery q = "?"++(intercalate "&" $ map (\(k,v)->k++"="++v) q)
                
-liftEither :: (Monad m, Error e') => (e -> e') -> Either e a -> ErrorT e' m a
-liftEither f (Left e) = throwError $ f e
-liftEither f (Right a) = return a
-
-mapErr ::  (Monad m, Error e') => (e -> e') -> ErrorT e m a -> ErrorT e' m a
-mapErr f = mapErrorT (>>= g)
-    where g (Left e)  = return $ Left $ f e
-          g (Right a) = return $ Right a
-                 
-lookupDoi :: DOI -> ErrorT String IO (Maybe Ref)
+lookupDoi :: DOI -> EitherT String IO (Maybe Ref)
 lookupDoi (DOI doi) = do
     let uri = URI { uriScheme = "http:"
                   , uriAuthority = Just hostname
@@ -52,10 +42,10 @@ lookupDoi (DOI doi) = do
                                           ]
                   , uriFragment = ""
                   }
-    resp <- liftEither show =<< (lift $ simpleHTTP $ mkRequest GET uri)
+    resp <- (mapEitherT show id . hoistEither) =<< (lift $ simpleHTTP $ mkRequest GET uri)
     case resp of
       Response {rspCode=(2,_,_), rspBody=body} -> do
-        doc <- liftEither show $ parseLBS def body
+        doc <- mapEitherT show id $ hoistEither $ parseLBS def body
         let queries = fromDocument doc
                       $/ laxElement "query_result"
                       &/ laxElement "body"
@@ -64,18 +54,18 @@ lookupDoi (DOI doi) = do
         case queries of
           r:_ -> do a <- parseQueryReply r
                     return $ Just a
-          []  -> throwError "No records returned"
-      a -> throwError $ show a
+          []  -> left "No records returned"
+      a -> left $ show a
        
-ensureNotNull :: (Monad m, Error e) => e -> [a] -> ErrorT e m a
-ensureNotNull e [] = throwError e
-ensureNotNull _ (a:_) = return a
+ensureNotNull :: (Monad m) => e -> [a] -> EitherT e m a
+ensureNotNull e []    = left e
+ensureNotNull _ (a:_) = right a
 
-parseQueryReply :: Monad m => Cursor -> ErrorT String m Ref
+parseQueryReply :: Monad m => Cursor -> EitherT String m Ref
 parseQueryReply root = do
     let e = root $/ laxElement "crossref"
                  &/ laxElement "error"
-    when (not $ null e) $ throwError $ T.unpack $ head $ content $ head e
+    when (not $ null e) $ left $ T.unpack $ head $ content $ head e
     
     j <- ensureNotNull "Can't find journal element"
          $ root $/ laxElement "crossref"
@@ -127,5 +117,3 @@ parseQueryReply root = do
                  , _refTags = S.empty
                  }
               
-parseDoiRecord :: Cursor -> Ref
-parseDoiRecord cursor =  undefined
