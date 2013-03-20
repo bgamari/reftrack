@@ -1,0 +1,8 @@
+\#*\#
+*.*~
+*.hi
+*.o
+.emacs.desktop
+.emacs.desktop.lock
+Config.hs
+
