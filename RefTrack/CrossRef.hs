@@ -22,6 +22,7 @@ import           Text.XML.Cursor
 
 userName = "bgamari@physics.umass.edu"
 passwd = "mudpie11"
+
 hostname = URIAuth { uriUserInfo = ""
                    , uriRegName = "doi.crossref.org"
                    , uriPort = ""
@@ -42,10 +43,10 @@ lookupDoi (DOI doi) = do
                                           ]
                   , uriFragment = ""
                   }
-    resp <- (mapEitherT show id . hoistEither) =<< (lift $ simpleHTTP $ mkRequest GET uri)
+    resp <- (bimapEitherT show id . hoistEither) =<< (lift $ simpleHTTP $ mkRequest GET uri)
     case resp of
       Response {rspCode=(2,_,_), rspBody=body} -> do
-        doc <- mapEitherT show id $ hoistEither $ parseLBS def body
+        doc <- bimapEitherT show id $ hoistEither $ parseLBS def body
         let queries = fromDocument doc
                       $/ laxElement "query_result"
                       &/ laxElement "body"
