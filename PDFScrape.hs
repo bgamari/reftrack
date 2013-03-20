@@ -10,26 +10,27 @@ import Network
 import RefTrack.Types
 import RefTrack.ScrapeIds
 import RefTrack.CrossRef
+import Config
 
 findPdfIds :: FilePath -> IO [ExternalRef]
 findPdfIds file = do
     (code, contents, err) <- readProcessWithExitCode "pdftotext" [file, "-"] ""
     return $ findIds contents
 
-lookupId :: ExternalRef -> IO (Maybe Ref)
-lookupId (DOIRef doi) = do
-    res <- runEitherT $ lookupDoi doi
+lookupCrossref :: CrossRefServer -> ExternalRef -> IO (Maybe Ref)
+lookupCrossref s (DOIRef doi) = do
+    res <- runEitherT $ lookupDoi s doi
     case res of
         Left err -> errLn err >> return Nothing
         Right a  -> return a
 
-lookupId _ = return Nothing
+lookupCrossref _ _ = return Nothing
 
 scrape :: FilePath -> IO (Maybe ExternalRef, Maybe Ref)
 scrape f = do
     ids <- findPdfIds f
     print (f,ids)
-    refs <- mapM lookupId ids
+    refs <- mapM (lookupCrossref crossrefServer) ids
     print refs
     return ( listToMaybe ids
            , case catMaybes refs of a:[] -> Just a
