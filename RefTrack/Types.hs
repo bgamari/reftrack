@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving,
              DeriveDataTypeable, TemplateHaskell, TypeFamilies,
-             OverloadedStrings #-}
+             OverloadedStrings, PatternGuards #-}
 
 module RefTrack.Types where
 
