@@ -36,7 +36,7 @@ oaiRequest baseUri args = do
     resp <- lift $ simpleHTTP $ mkRequest GET uri
     case resp of
         Left e -> left $ show e
-        Right body -> mapEitherT show id $ hoistEither $ parseLBS def $ rspBody body
+        Right body -> bimapEitherT show id $ hoistEither $ parseLBS def $ rspBody body
 
 getRecord :: URI -> String -> Identifier -> EitherT String IO Document
 getRecord baseUri metadataPrefix ident = do
@@ -47,4 +47,3 @@ getRecord baseUri metadataPrefix ident = do
 
 parseDate :: String -> Maybe UTCTime
 parseDate = parseTime defaultTimeLocale (iso8601DateFormat Nothing)
-
