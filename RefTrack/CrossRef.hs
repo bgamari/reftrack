@@ -1,6 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module RefTrack.CrossRef where
+module RefTrack.CrossRef ( CrossRefServer(..)
+                         , defaultCrossRefServer
+                         , lookupDoi
+                         ) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
 
@@ -14,30 +17,38 @@ import qualified Data.Text as T
 import           Control.Monad
 import           Control.Monad.Trans.Class
 import           Data.Functor.Identity
-import           Network.HTTP
+import           Network.HTTP hiding (password)
 import           Network.URI
 import           RefTrack.Types hiding (Document)
 import           Text.XML
 import           Text.XML.Cursor
 
-userName = "bgamari@physics.umass.edu"
-passwd = "mudpie11"
+data CrossRefServer = CrossRefServer { username    :: String
+                                     , password    :: String
+                                     , hostname    :: URIAuth
+                                     }
+                    deriving (Show)
 
-hostname = URIAuth { uriUserInfo = ""
-                   , uriRegName = "doi.crossref.org"
-                   , uriPort = ""
+defaultCrossRefServer :: String -> String -> CrossRefServer
+defaultCrossRefServer _username _password =
+    CrossRefServer { username = _username
+                   , password = _password
+                   , hostname = URIAuth { uriUserInfo = ""
+                                        , uriRegName = "doi.crossref.org"
+                                        , uriPort = ""
+                                        }
                    }
 
 buildQuery :: [(String,String)] -> String
 buildQuery q = "?"++(intercalate "&" $ map (\(k,v)->k++"="++v) q)
 
-lookupDoi :: DOI -> EitherT String IO (Maybe Ref)
-lookupDoi (DOI doi) = do
+lookupDoi :: CrossRefServer -> DOI -> EitherT String IO (Maybe Ref)
+lookupDoi s (DOI doi) = do
     let uri = URI { uriScheme = "http:"
-                  , uriAuthority = Just hostname
+                  , uriAuthority = Just (hostname s)
                   , uriPath = "/servlet/query"
-                  , uriQuery = buildQuery [ ("usr", userName)
-                                          , ("pwd", passwd)
+                  , uriQuery = buildQuery [ ("usr", username s)
+                                          , ("pwd", password s)
                                           , ("format", "xml")
                                           , ("id", normalizeEscape $ T.unpack doi)
                                           ]
