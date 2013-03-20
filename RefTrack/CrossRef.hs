@@ -29,7 +29,7 @@ hostname = URIAuth { uriUserInfo = ""
 
 buildQuery :: [(String,String)] -> String
 buildQuery q = "?"++(intercalate "&" $ map (\(k,v)->k++"="++v) q)
-               
+
 lookupDoi :: DOI -> EitherT String IO (Maybe Ref)
 lookupDoi (DOI doi) = do
     let uri = URI { uriScheme = "http:"
@@ -56,7 +56,7 @@ lookupDoi (DOI doi) = do
                     return $ Just a
           []  -> left "No records returned"
       a -> left $ show a
-       
+
 ensureNotNull :: (Monad m) => e -> [a] -> EitherT e m a
 ensureNotNull e []    = left e
 ensureNotNull _ (a:_) = right a
@@ -66,14 +66,14 @@ parseQueryReply root = do
     let e = root $/ laxElement "crossref"
                  &/ laxElement "error"
     when (not $ null e) $ left $ T.unpack $ head $ content $ head e
-    
+
     j <- ensureNotNull "Can't find journal element"
          $ root $/ laxElement "crossref"
                 &/ laxElement "journal"
     ja <- ensureNotNull "Can't find journal_article element"
           $ j $/ laxElement "journal_article"
     ji <- ensureNotNull "Can't find journal_issue element"
-          $ j $/ laxElement "journal_issue" 
+          $ j $/ laxElement "journal_issue"
     let vol = maybe 0 id $ do jv <- listToMaybe $ ji $/ laxElement "journal_volume"
                                                      &/ laxElement "volume"
                                                      &// content
@@ -97,14 +97,14 @@ parseQueryReply root = do
                   $ ja $/ laxElement "contributors"
                        &/ laxElement "person_name"
                        >=> attributeIs "contributor_role" "author"
-    
+
     let erefs = map (DOIRef . DOI) $ ja $/ laxElement "doi_data"
                                         &/ laxElement "doi"
                                         &/ content
     let pubYear = do year <- listToMaybe $ ja $/ laxElement "publication_date"
                                               &/ laxElement "year"
                                               &/ content
-                     readZ $ T.unpack year 
+                     readZ $ T.unpack year
     return $ Ref { _refId = RefId ""
                  , _refTitle = T.strip $ T.intercalate " " $ map (T.unwords . T.words)
                                $ ja $/ laxElement "titles" &// content
@@ -116,4 +116,3 @@ parseQueryReply root = do
                  , _refAbstract = Nothing
                  , _refTags = S.empty
                  }
-              
