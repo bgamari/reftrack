@@ -127,7 +127,7 @@ emptyRepo = Repo IS.empty IS.empty M.empty
 
 fillInRefId :: Ref -> Query Repo Ref
 fillInRefId ref | RefId "" <- ref^.refId = do
-    repo <- Control.Lens.query (to id)
+    repo <- view (to id)
     let exists refid = not $ IS.null $ (repo^.repoRefs) IS.@= refid
     return $ set refId (head $ filter (not . exists) $ possibilities repo) ref
     where possibilities :: Repo -> [RefId]
@@ -149,6 +149,6 @@ delRef :: Ref -> Update Repo ()
 delRef ref = repoRefs %= IS.delete ref
 
 getAllRefs :: Query Repo (Set Ref)
-getAllRefs = Control.Lens.queries repoRefs IS.toSet
+getAllRefs = views repoRefs IS.toSet
 
 $(makeAcidic ''Repo ['addRef, 'delRef, 'fillInRefId, 'getAllRefs])
