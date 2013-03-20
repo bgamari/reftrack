@@ -3,6 +3,9 @@ import Data.Maybe
 import Control.Monad
 import System.Environment
 import Control.Error
+import Data.Acid
+import Data.Acid.Remote
+import Network       
        
 import RefTrack.Types
 import RefTrack.ScrapeIds
@@ -32,12 +35,16 @@ scrape f = do
            , case catMaybes refs of a:[] -> Just a
                                     _    -> Nothing
            )
-
+    
 main = do
     args <- getArgs
     (eids, refs) <- unzip `fmap` forM args scrape
     print $ "Found IDs for "++frac (length $ catMaybes eids) (length eids)
     print $ "Found refs for "++frac (length $ catMaybes refs) (length eids)
+    
+    st <- openRemoteState "localhost" (PortNumber 7777)
+    mapM_ (update st . AddRef) $ catMaybes refs
+    closeAcidState st
     
 frac :: Real n => n -> n -> String
 frac a b = show (100 * realToFrac a / realToFrac b)++"%"
