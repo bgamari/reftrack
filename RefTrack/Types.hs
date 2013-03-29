@@ -36,8 +36,8 @@ $(deriveSafeCopy 0 'base ''Tag)
 newtype Year = Year Int deriving (Show, Ord, Eq, Typeable)
 $(deriveSafeCopy 0 'base ''Year)
 
-data Person = Person { _personForenames :: Text
-                     , _personSurname :: Text
+data Person = Person { _forenames :: Text
+                     , _surname :: Text
                      }
             deriving (Show, Eq)
 $(deriveSafeCopy 0 'base ''Person)
@@ -92,7 +92,7 @@ newtype Author = Author Text deriving (Show, Ord, Eq, Typeable)
 
 instance Indexable Ref where
   empty = ixSet [ ixFun $ \ref->[view refId ref]
-                , ixFun $ \ref->map (Author . view personSurname) $ view refAuthors ref
+                , ixFun $ \ref->map (Author . view surname) $ view refAuthors ref
                 ]
 
 data FileHash = SHAHash ByteString
@@ -134,7 +134,7 @@ fillInRefId ref | RefId "" <- ref^.refId = do
           possibilities repo = map RefId $
               ( let Year year = view refYear ref
                 in take 1
-                   $ map (\firstAuthor->firstAuthor^.personSurname <> T.pack (show year))
+                   $ map (\firstAuthor->firstAuthor^.surname <> T.pack (show year))
                    $ ref^.refAuthors
               ) ++
               [ "unknown"<>T.pack (show i) | i <- [1..] ]
