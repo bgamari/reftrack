@@ -43,6 +43,19 @@ data Person = Person { _forenames :: Text
 $(deriveSafeCopy 0 'base ''Person)
 $(makeLenses ''Person)
 
+showPerson :: Person -> Text
+showPerson p = p^.forenames<>" "<>p^.surname
+
+readPerson :: Text -> Maybe Person
+readPerson t
+    | [fore,sur] <- splits  = Just $ Person (T.strip fore) (T.strip sur)
+    | otherwise             = case T.words t of
+                                  []  -> Nothing
+                                  [n] -> Just $ Person "" n
+                                  ns  -> Just $ Person (T.unwords $ init ns) (last ns)
+
+  where splits = T.splitOn "," t
+
 data Publication = JournalIssue { _pubFullTitle :: Text
                                 , _pubAbbrevTitle :: Maybe Text
                                 , _pubVolume :: Int
