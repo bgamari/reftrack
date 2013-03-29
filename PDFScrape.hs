@@ -40,8 +40,8 @@ scrape f = do
 main = do
     args <- getArgs
     (eids, refs) <- unzip `fmap` forM args scrape
-    print $ "Found IDs for "++frac (length $ catMaybes eids) (length eids)
-    print $ "Found refs for "++frac (length $ catMaybes refs) (length eids)
+    putStrLn $ "Found IDs for "++frac (length $ catMaybes eids) (length eids)
+    putStrLn $ "Found refs for "++frac (length $ catMaybes refs) (length eids)
 
     st <- openRemoteState "localhost" (PortNumber 7777)
     mapM_ (update st . AddRef) $ catMaybes refs
