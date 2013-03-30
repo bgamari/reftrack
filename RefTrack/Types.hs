@@ -151,4 +151,9 @@ delRef ref = repoRefs %= IS.delete ref
 getAllRefs :: Query Repo (Set Ref)
 getAllRefs = views repoRefs IS.toSet
 
-$(makeAcidic ''Repo ['addRef, 'delRef, 'fillInRefId, 'getAllRefs])
+getRefById :: RefId -> Query Repo (Maybe Ref)
+getRefById refId = views repoRefs (IS.getOne . IS.getEQ refId)
+
+makeAcidic ''Repo ['addRef, 'delRef, 'fillInRefId, 'getAllRefs
+                  ,'getRefById
+                  ]
