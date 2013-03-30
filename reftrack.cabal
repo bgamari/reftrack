@@ -13,7 +13,7 @@ Version:             0.1
 Synopsis:            A simple citation manager
 
 -- A longer description of the package.
--- Description:         
+-- Description:
 
 -- The license under which the package is released.
 License:             BSD3
@@ -29,7 +29,7 @@ Author:              Ben Gamari
 Maintainer:          bgamari.foss@gmail.com
 
 -- A copyright notice.
--- Copyright:           
+-- Copyright:
 
 Category:            Application
 
@@ -37,13 +37,14 @@ Build-type:          Simple
 
 -- Extra files to be distributed with the package, such as examples or
 -- a README.
--- Extra-source-files:  
+-- Extra-source-files:
 
 -- Constraint on the version of Cabal needed to build this package.
 Cabal-version:       >=1.2
 
 Library
   Exposed-Modules:     RefTrack.Types
+                       RefTrack.Utils
                        RefTrack.ScrapeIds
                        RefTrack.OAI
                        RefTrack.OAI.Arxiv
@@ -98,4 +99,3 @@ Executable reftrack-scrape
                        hashable,
                        xml-conduit,
                        old-locale
-
