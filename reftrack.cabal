@@ -99,4 +99,5 @@ Executable reftrack-scrape
                        lens,
                        hashable,
                        xml-conduit,
-                       old-locale
+                       old-locale,
+                       SHA
