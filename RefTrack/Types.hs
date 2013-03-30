@@ -4,31 +4,38 @@
 
 module RefTrack.Types where
 
+import           Prelude hiding ((.), id)
 import           Control.Category
-import           Data.Acid
+import           Control.Monad
+import           Data.Typeable
+import           Data.Char (isSpace)
 import           Data.Function (on)
+
+import           Control.Lens hiding (Indexable)
+import           Data.Acid
 import           Data.ByteString (ByteString)
-import           Data.Monoid
 import           Data.Hashable
 import           Data.IxSet (IxSet, Indexable, ixSet, ixFun)
 import qualified Data.IxSet as IS
-import           Control.Lens hiding (Indexable)
 import           Data.Map (Map)
 import qualified Data.Map as M
+import           Data.Maybe (listToMaybe)
+import           Data.Monoid
 import           Data.SafeCopy
 import           Data.Set (Set)
 import           Data.Text (Text)
 import qualified Data.Text as T
-import           Data.Maybe (listToMaybe)
-import           Control.Monad
-import           Data.Char (isSpace)
 import           Data.Time.Calendar
 import           Data.Time.Clock
-import           Data.Typeable
-import           Prelude hiding ((.), id)
 
-newtype RefId  = RefId Text deriving (Show, Ord, Eq, Hashable, Typeable)
+import           Web.PathPieces
+
+newtype RefId  = RefId Text deriving (Show, Ord, Eq, Hashable, Typeable, Read)
 $(deriveSafeCopy 0 'base ''RefId)
+
+instance PathPiece RefId where
+    fromPathPiece t = Just $ RefId t
+    toPathPiece (RefId t) = t
 
 newtype Tag = Tag Text deriving (Show, Ord, Eq, Hashable, Typeable)
 $(deriveSafeCopy 0 'base ''Tag)
