@@ -161,6 +161,17 @@ getAllRefs = views repoRefs IS.toSet
 getRefById :: RefId -> Query Repo (Maybe Ref)
 getRefById refId = views repoRefs (IS.getOne . IS.getEQ refId)
 
-makeAcidic ''Repo ['addRef, 'delRef, 'fillInRefId, 'getAllRefs
-                  ,'getRefById
+getRefDocs :: RefId -> Query Repo (IxSet Document)
+getRefDocs refId = views repoDocuments (IS.getEQ refId)
+
+getDocByHash :: FileHash -> Query Repo (Maybe Document)
+getDocByHash hash = views repoDocuments (IS.getOne . IS.getEQ hash)
+
+addDocument :: Document -> Update Repo ()
+addDocument doc = repoDocuments %= IS.insert doc
+
+makeAcidic ''Repo [ 'addRef, 'delRef, 'fillInRefId, 'getAllRefs
+                  , 'getRefById
+                  , 'getRefDocs
+                  , 'addDocument , 'getDocByHash
                   ]
