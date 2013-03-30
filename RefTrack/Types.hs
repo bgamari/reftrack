@@ -110,7 +110,7 @@ $(deriveSafeCopy 0 'base ''FileHash)
 
 instance PathPiece FileHash where
     fromPathPiece t
-        | "sha:" `T.isPrefixOf` t = Just $ SHAHash $ fst $ B16.decode $ TE.encodeUtf8 t
+        | Just hash <- T.stripPrefix "sha:" t = Just $ SHAHash $ fst $ B16.decode $ TE.encodeUtf8 hash
         | otherwise               = Nothing
     toPathPiece (SHAHash t) = "sha:"<>TE.decodeUtf8 (B16.encode t)
 
