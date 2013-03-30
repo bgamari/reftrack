@@ -14,6 +14,7 @@ import           Data.Function (on)
 import           Control.Lens hiding (Indexable)
 import           Data.Acid
 import           Data.ByteString (ByteString)
+import qualified Data.ByteString.Base16 as B16
 import           Data.Hashable
 import           Data.IxSet (IxSet, Indexable, ixSet, ixFun)
 import qualified Data.IxSet as IS
@@ -25,6 +26,7 @@ import           Data.SafeCopy
 import           Data.Set (Set)
 import           Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import           Data.Time.Calendar
 import           Data.Time.Clock
 
@@ -103,8 +105,14 @@ instance Indexable Ref where
                 ]
 
 data FileHash = SHAHash ByteString
-              deriving (Show, Ord, Eq, Typeable)
+              deriving (Show, Ord, Eq, Typeable, Read)
 $(deriveSafeCopy 0 'base ''FileHash)
+
+instance PathPiece FileHash where
+    fromPathPiece t
+        | "sha:" `T.isPrefixOf` t = Just $ SHAHash $ fst $ B16.decode $ TE.encodeUtf8 t
+        | otherwise               = Nothing
+    toPathPiece (SHAHash t) = "sha:"<>TE.decodeUtf8 (B16.encode t)
 
 data Document = Document { _docHash :: FileHash
                          , _docTitle :: Maybe Text

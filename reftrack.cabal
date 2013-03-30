@@ -67,7 +67,8 @@ Library
                        HTTP,
                        errors,
                        transformers,
-                       path-pieces
+                       path-pieces,
+                       base16-bytestring
 
 Executable reftrack-server
   Main-is:             Server.hs
