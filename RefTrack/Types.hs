@@ -148,9 +148,11 @@ fillInRefId ref | RefId "" <- ref^.refId = do
     where possibilities :: Repo -> [RefId]
           possibilities repo = map RefId $
               ( let Year year = view refYear ref
-                in take 1
-                   $ map (\firstAuthor->firstAuthor^.surname <> T.pack (show year))
-                   $ ref^.refAuthors
+                in case ref^.refAuthors of
+                       [] -> []
+                       firstAuthor:_ ->
+                           map (\i->firstAuthor^.surname <> T.pack (show year) <> i)
+                           ([""]++map T.singleton ['a'..])
               ) ++
               [ "unknown"<>T.pack (show i) | i <- [1..] ]
 
