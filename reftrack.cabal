@@ -68,7 +68,8 @@ Library
                        errors,
                        transformers,
                        path-pieces,
-                       base16-bytestring
+                       base16-bytestring,
+                       aeson
 
 Executable reftrack-server
   Main-is:             Server.hs

@@ -29,11 +29,13 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import           Data.Time.Calendar
 import           Data.Time.Clock
+import           Data.Aeson.TH
 
 import           Web.PathPieces
 
 newtype RefId  = RefId Text deriving (Show, Ord, Eq, Hashable, Typeable, Read)
 $(deriveSafeCopy 0 'base ''RefId)
+$(deriveJSON id ''RefId)
 
 instance PathPiece RefId where
     fromPathPiece t = Just $ RefId t
@@ -41,9 +43,11 @@ instance PathPiece RefId where
 
 newtype Tag = Tag Text deriving (Show, Ord, Eq, Hashable, Typeable)
 $(deriveSafeCopy 0 'base ''Tag)
+$(deriveJSON id ''Tag)
 
 newtype Year = Year Int deriving (Show, Ord, Eq, Typeable)
 $(deriveSafeCopy 0 'base ''Year)
+$(deriveJSON id ''Year)
 
 data Person = Person { _forenames :: Text
                      , _surname :: Text
@@ -51,6 +55,7 @@ data Person = Person { _forenames :: Text
             deriving (Show, Eq)
 $(deriveSafeCopy 0 'base ''Person)
 $(makeLenses ''Person)
+$(deriveJSON (drop 1) ''Person)
 
 data Publication = JournalIssue { _pubFullTitle :: Text
                                 , _pubAbbrevTitle :: Maybe Text
@@ -65,21 +70,26 @@ data Publication = JournalIssue { _pubFullTitle :: Text
                  deriving (Show, Eq)
 $(deriveSafeCopy 0 'base ''Publication)
 $(makeLenses ''Publication)
+$(deriveJSON (drop 4) ''Publication)
 
 newtype ArxivId = ArxivId Text deriving (Show, Eq)
 $(deriveSafeCopy 0 'base ''ArxivId)
+$(deriveJSON id ''ArxivId)
 
 newtype DOI = DOI Text deriving (Show, Eq)
+$(deriveSafeCopy 0 'base ''DOI)
+$(deriveJSON id ''DOI)
+
 mkDOI :: Text -> Maybe DOI
 mkDOI t =
     (DOI . T.takeWhile (not . isSpace))
     `fmap` listToMaybe (filter (`T.isPrefixOf` "10.") $ T.tails t)
 
-$(deriveSafeCopy 0 'base ''DOI)
 data ExternalRef = ArxivRef ArxivId
                  | DOIRef DOI
                  deriving (Show, Eq)
 $(deriveSafeCopy 0 'base ''ExternalRef)
+$(deriveJSON id ''ExternalRef)
 
 data Ref = Ref { -- * General
                  _refId :: RefId
@@ -95,6 +105,8 @@ data Ref = Ref { -- * General
          deriving (Show, Eq, Typeable)
 $(deriveSafeCopy 0 'base ''Ref)
 $(makeLenses ''Ref)
+$(deriveJSON id ''Day)
+$(deriveJSON (drop 4) ''Ref)
 instance Ord Ref where compare = compare `on` view refId
 
 newtype Author = Author Text deriving (Show, Ord, Eq, Typeable)
