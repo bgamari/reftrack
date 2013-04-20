@@ -10,6 +10,7 @@ import           Control.Monad
 import           Data.Typeable
 import           Data.Char (isSpace)
 import           Data.Function (on)
+import           Data.Foldable
 
 import           Control.Lens hiding (Indexable)
 import           Data.Acid
@@ -23,6 +24,7 @@ import qualified Data.Map as M
 import           Data.Maybe (listToMaybe)
 import           Data.Monoid
 import           Data.SafeCopy
+import qualified Data.Set as S
 import           Data.Set (Set)
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -152,6 +154,18 @@ $(makeLenses ''Repo)
 
 emptyRepo = Repo IS.empty IS.empty M.empty
 
+updateRefTags :: RefId -> Set Tag -> Set Tag -> Update Repo ()
+updateRefTags refid tags tags' =
+    let removed = tags `S.difference` tags'
+        added   = tags' `S.difference` tags
+        update :: Map Tag (Set RefId) -> Map Tag (Set RefId)
+        update  = appEndo
+                $ foldMap (Endo . M.adjust (S.delete refid)) removed
+               <> foldMap (\tag->Endo $ M.unionWith S.union
+                                        (M.singleton tag $ S.singleton refid)
+                          ) added
+    in repoTags %= update
+
 fillInRefId :: Ref -> Query Repo Ref
 fillInRefId ref | RefId "" <- ref^.refId = do
     repo <- view (to id)
@@ -172,7 +186,9 @@ fillInRefId ref = return ref
 
 addRef :: Ref -> Update Repo RefId
 addRef ref | RefId "" <- ref^.refId = runQuery (fillInRefId ref) >>= addRef
-addRef ref = repoRefs %= IS.insert ref >> return (ref^.refId)
+addRef ref = do repoRefs %= IS.insert ref
+                updateRefTags (ref^.refId) S.empty (ref^.refTags)
+                return $ ref^.refId
 
 delRef :: Ref -> Update Repo ()
 delRef ref = repoRefs %= IS.delete ref
